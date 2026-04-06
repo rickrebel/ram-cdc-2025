@@ -4,7 +4,10 @@
       "Bash(npx prisma:*)",
       "Bash(ls:*)",
       "WebSearch",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(node -e \"require\\('express'\\); console.log\\('express OK'\\)\")",
+      "Bash(node -e \"require\\('@remix-run/express'\\); console.log\\('@remix-run/express OK'\\)\")",
+      "Bash(npm run:*)"
     ]
   }
 }

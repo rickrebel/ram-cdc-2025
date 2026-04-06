@@ -7,9 +7,9 @@ import {
 import { ErrorBody } from "~/utilities/ErrorBody";
 import PrimaryConditionState from "~/components/inputgroups/PrimaryConditionState";
 import { requireUserSession } from "~/server/auth.server";
+import { appPath } from "~/server/basepath.server";
 import { updatePrimaryCondition } from "~/server/updates.server";
 import { getPrimaryCondition } from "~/server/getters.server";
-import { useStepStore } from "~/state/store";
 
 type NewPrimaryCondition = {
   clinicosID: string;
@@ -18,15 +18,12 @@ type NewPrimaryCondition = {
 };
 
 export default function PrimaryCondition() {
-  const { handleStepChange } = useStepStore();
-
   return (
     <main>
       <PrimaryConditionState />
       <div className="flex items-center justify-end gap-x-6 border-t border-accent px-4 py-4 sm:px-8 mt-12">
         <Link
           to="/add/characteristics/create"
-          onClick={() => handleStepChange("01")}
           className="btn btn-secondary btn-sm"
         >
           Previo
@@ -75,11 +72,11 @@ export async function action({ request }: ActionFunctionArgs) {
   const clinicosId: string = newPrimaryCondition.clinicosID;
   const detail: string = newPrimaryCondition.detail;
   if (detail === "Infecciones de transmisión sexual") {
-    return redirect(`/add/define/its?vID=${visitationId}&cID=${clinicosId}`);
+    return redirect(appPath(`/add/define/its?vID=${visitationId}&cID=${clinicosId}`));
   } else if (detail === "Infecciones del aparato respiratorio superior") {
-    return redirect(`/add/define/iras?vID=${visitationId}&cID=${clinicosId}`);
+    return redirect(appPath(`/add/define/iras?vID=${visitationId}&cID=${clinicosId}`));
   } else {
-    return redirect(`/add/define/alpha?vID=${visitationId}&cID=${clinicosId}`);
+    return redirect(appPath(`/add/define/alpha?vID=${visitationId}&cID=${clinicosId}`));
   }
 }
 

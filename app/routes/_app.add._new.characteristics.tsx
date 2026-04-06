@@ -5,6 +5,7 @@ import {
   redirect,
 } from "@remix-run/node";
 import { isUniqueCURP, isValidCURP } from "~/server/validation.server";
+import { appPath } from "~/server/basepath.server";
 import {
   getPatientByCurp,
   getPatientsByCurp,
@@ -85,7 +86,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
       if (typeof isValid === "boolean") {
         if (isValid) {
           return redirect(
-            `/add/characteristics/create?curp=${encodeURIComponent(query)}`
+            appPath(`/add/characteristics/create?curp=${encodeURIComponent(query)}`)
           );
         }
       }

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   useLoaderData,
   Form,
@@ -11,20 +12,21 @@ import {
 } from "@remix-run/node";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { requireUserSession } from "~/server/auth.server";
+import { appPath } from "~/server/basepath.server";
 import secondarySymptomsDropdown from "~/components/inputgroups/SecondarySymptomsDropdown";
 import { updateSecondaryCondition } from "~/server/updates.server";
 import { getClinicos, getVisitation } from "~/server/getters.server";
 import PrevioSiguiente from "~/components/inputgroups/PrevioSiguiente";
-import KeyToString from "~/utilities/KeyToString";
 import convertCheckboxValuesToArray from "~/utilities/ConvertCheckBoxToArray";
-import hasPrimaryCondition from "~/utilities/HasPrimary";
-import {
-  usePrimaryConditionStore,
-  useSecondarySymptomStore,
-  useClinicalIDStore,
-  useVisitationIDStore,
-} from "~/state/store";
 import SelectSecondaries from "~/utilities/SelectSecondaries";
+import {
+  buildSymptomCatalog,
+  type SecondarySymptom,
+} from "~/utilities/buildSymptomCatalog";
+import {
+  ALL_ITS_SYMPTOMS,
+  ALL_ITS_LABELS,
+} from "~/algorithms/ITS/utilitiesSymptoms";
 import {
   typeVisitationStringified,
   SSDropDown,
@@ -50,31 +52,20 @@ const idx_dolor_abdominal_bajo = [20, 21, 22, 23, 24, 25, 26, 27];
 const idx_ano_rectal = [28, 29, 30, 31, 32, 33, 34];
 
 export default function DefineRecord() {
-  const { primaryConditions } = usePrimaryConditionStore();
-  const { secondarySymptoms } = useSecondarySymptomStore();
-
   const loaderData = useLoaderData<LoadData>();
-
   const sexo_al_nacer: string = loaderData.clinicos.sexonacer;
 
-  // Find the index (zero indexed) of the first element in the 'primaryConditions' array that
-  // satisfies the provided 'hasPrimaryCondition' testing function. Previously the '/add/primary'
-  // route will have set the 'enabled' property of the selected primary condition to 'true'. And so
-  // the 'findIndex' method will return the index of that selected primary condition.
-  const selectedPrimaryCondition: number =
-    primaryConditions.findIndex(hasPrimaryCondition);
+  // Catálogo de síntomas secundarios para ITS, construido localmente
+  // en vez de leer del store de Zustand. useState solo usa el valor
+  // inicial en el primer render.
+  const [symptomData, setSymptomData] = useState<SecondarySymptom[]>(
+    () => [buildSymptomCatalog(
+      "02", "ITS", ALL_ITS_SYMPTOMS, ALL_ITS_LABELS
+    )]
+  );
 
-  // The array element (i.e. object) containing details of the secondary symptoms that correspond to
-  // the selected primary condition. Since the indexes of the primary conditions match the indexes
-  // of the secondary symptoms, we can use the index of the selected primary condition to get the
-  // corresponding secondary symptoms.
-  const selectedSymptoms = secondarySymptoms[selectedPrimaryCondition];
-
-  // The 'checked' array is an array of booleans. Each boolean corresponds to a secondary symptom
-  // and indicates whether that secondary symptom has been selected or not. The 'checked' array is
-  // initialized to all 'false' values. When a secondary symptom is selected its corresponding
-  // 'checked' array element is set to 'true'. When a secondary symptom is deselected its
-  // corresponding 'checked' array element is set to 'false'.
+  // Único elemento del array — los síntomas de ITS
+  const selectedSymptoms = symptomData[0];
   const checkedSecondarySymptoms: boolean[] = selectedSymptoms.checked;
 
   // At the bottom of the form the 'Siguente' button has the type 'submit'. On clicking it the form
@@ -102,11 +93,11 @@ export default function DefineRecord() {
 
     serializedData.append(
       "clinicosId",
-      KeyToString(useClinicalIDStore.getState().clinicosID)
+      loaderData.clinicos.id
     );
     serializedData.append(
       "visitationId",
-      KeyToString(useVisitationIDStore.getState().visitationID)
+      loaderData.visitation.id
     );
 
     submit(serializedData, {
@@ -189,21 +180,15 @@ export default function DefineRecord() {
         <div className="grid grid-cols-1 gap-y-4 items-center mx-auto md:max-w-3xl md:gap-x-3 md:gap-y-6 md:grid-cols-6 lg:gap-x-10 lg:max-w-5xl xl:max-w-7xl text-sm sm:text-base font-medium">
           {inflamacionEscrotal &&
             SelectSecondaries(
-              // String representing the sexo al nacer.
               sexo_al_nacer,
-              // HTML name used to identify the dropdown menu.
               "inflamacionEscrotal",
-              // String that appears above the dropdown menu.
               "El paciente (hombre) presenta signos o síntomas de dolor e inflamación escrotal",
-              // The object created above containing the secondary symptoms for Inflamacion Escrotal.
               inflamacionEscrotal,
-              // A function that will update the secondary symptoms object within the array of all secondary symptoms.
-              // The index of the primary condition corresponding to ITS.
-              1,
-              // The starting column for the dropdown menu.
+              0,
               "lg:col-start-1",
-              // The ending column for the dropdown menu.
-              "lg:col-start-4"
+              "lg:col-start-4",
+              symptomData,
+              setSymptomData
             )}
 
           {SelectSecondaries(
@@ -211,9 +196,11 @@ export default function DefineRecord() {
             "secrecionUretral",
             "El paciente presenta signos o síntomas de secreción uretral",
             secrecionUretral,
-            1,
+            0,
             "lg:col-start-4",
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -221,9 +208,11 @@ export default function DefineRecord() {
             "anoRectal",
             "El paciente presenta signos o síntomas de secreción ano-rectal",
             anoRectal,
-            1,
+            0,
             "lg:col-start-1",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {flujoVaginal &&
@@ -232,9 +221,11 @@ export default function DefineRecord() {
               "flujoVaginal",
               "La paciente (mujer) presenta signos o síntomas de flujo vaginal",
               flujoVaginal,
-              1,
+              0,
               "lg:col-start-1",
-              "lg:col-start-1"
+              "lg:col-start-1",
+              symptomData,
+              setSymptomData
             )}
 
           {SelectSecondaries(
@@ -242,9 +233,11 @@ export default function DefineRecord() {
             "ulcerasGenitales",
             "El paciente presenta signos o síntomas de úlceras genitales",
             ulcerasGenitales,
-            1,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {dolorAbdominalBajo &&
@@ -253,9 +246,11 @@ export default function DefineRecord() {
               "dolorAbdominalBajo",
               "La paciente (mujer) presenta signos o síntomas de dolor abdominal bajo",
               dolorAbdominalBajo,
-              1,
+              0,
               "lg:col-start-1",
-              "lg:col-start-1"
+              "lg:col-start-1",
+              symptomData,
+              setSymptomData
             )}
         </div>
 
@@ -285,7 +280,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Add the new secondary conditions to the database.
   await updateSecondaryCondition(visitationId, arraySecondaryConditions);
 
-  return redirect(`/add/revise?vID=${visitationId}&cID=${clinicosId}`);
+  return redirect(appPath(`/add/revise?vID=${visitationId}&cID=${clinicosId}`));
 }
 
 // Runs on the server only.

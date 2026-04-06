@@ -1,5 +1,5 @@
+import { useLocation } from "@remix-run/react";
 import CheckIcon from "~/icons/check";
-import { useStepStore } from "~/state/store";
 
 type StepType = {
   id: string;
@@ -8,6 +8,36 @@ type StepType = {
   href: string;
   status: string;
 };
+
+const stepsData = [
+  {
+    id: "01",
+    name: "Características del Paciente.",
+    description:
+      "Definir las características y factores de riesgo del paciente.",
+    href: "characteristics",
+  },
+  {
+    id: "02",
+    name: "La condición primaria.",
+    description: "Definir la condición primaria sospechosa.",
+    href: "primary",
+  },
+  {
+    id: "03",
+    name: "Los síntomas secundarios.",
+    description:
+      "Definir la condición sospechosa específica con más detalle.",
+    href: "define",
+  },
+  {
+    id: "04",
+    name: "Revisar las Opciones de Tratamiento.",
+    description:
+      "Opciones de tratamiento, recomendaciones y más detalles.",
+    href: "revise",
+  },
+];
 
 function classNames(...classes: (string | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -78,7 +108,18 @@ const CurrentStep: React.FC<{ step: StepType; stepIdx: number }> = ({
 };
 
 const Steps = () => {
-  const steps = useStepStore((state) => state.steps);
+  const { pathname } = useLocation();
+  const currentStepId =
+    pathname.includes("/revise")  ? "04" :
+    pathname.includes("/define")  ? "03" :
+    pathname.includes("/primary") ? "02" : "01";
+
+  const steps: StepType[] = stepsData.map((step) => ({
+    ...step,
+    status:
+      step.id < currentStepId ? "complete" :
+      step.id === currentStepId ? "current" : "upcoming",
+  }));
 
   return (
     <div className="mt-6 lg:border-b lg:border-t lg:border-secondary">

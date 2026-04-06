@@ -1,27 +1,48 @@
-import { Form, Link, useSubmit, useRouteError } from "@remix-run/react";
+import { useState } from "react";
+import {
+  useLoaderData,
+  Form,
+  useSubmit,
+  useRouteError,
+} from "@remix-run/react";
 import {
   redirect,
   ActionFunctionArgs,
   LoaderFunctionArgs,
 } from "@remix-run/node";
+import { Visitation } from "@prisma/client";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { requireUserSession } from "~/server/auth.server";
+import { appPath } from "~/server/basepath.server";
 import Define from "~/components/inputgroups/DefineCondition";
-import hasPrimaryCondition from "~/utilities/HasPrimary";
-import { getSecondaryConditions } from "~/server/getters.server";
+import PrevioSiguiente from "~/components/inputgroups/PrevioSiguiente";
+import { getVisitation } from "~/server/getters.server";
 import {
   updateSecondaryCondition,
   updateEvacuation,
   updateVomitos,
 } from "~/server/updates.server";
+import convertCheckboxValuesToArray
+  from "~/utilities/ConvertCheckBoxToArray";
 import {
-  usePrimaryConditionStore,
-  useStepStore,
-  useSecondarySymptomStore,
-  useClinicalIDStore,
-  useVisitationIDStore,
-} from "~/state/store";
-import KeyToString from "~/utilities/KeyToString";
+  buildSymptomCatalog,
+  type SecondarySymptom,
+} from "~/utilities/buildSymptomCatalog";
+import {
+  ALL_IVU_SYMPTOMS,
+  ALL_IVU_LABELS,
+} from "~/algorithms/IVU/utilitiesSymptoms";
+import {
+  ALL_EDAS_SYMPTOMS,
+  ALL_EDAS_LABELS,
+} from "~/algorithms/EDAS/utilitiesSymptoms";
+
+// Mapeo de detail strings (como se guardan en BD desde primary.tsx)
+// a nombres cortos usados en los catálogos de síntomas.
+const DETAIL_TO_NAME: Record<string, string> = {
+  "Infección del tracto urinario": "IVU",
+  "Enfermedades diarreicas agudas": "EDAS",
+};
 
 type NewSecondaryCondition = {
   clinicosId: string;
@@ -31,104 +52,115 @@ type NewSecondaryCondition = {
   [key: string]: string | undefined;
 };
 
-const anySelected = (currentValue: boolean): boolean => currentValue === false;
-
-const convertCheckboxValuesToArray = (
-  newData: { [key: string]: string | undefined },
-  existingData: string[]
-): string[] => {
-  // Always start with an empty array of secondary conditions.
-  const checkboxValues: string[] = [];
-
-  // Iterate over the 'newData' - but only for 'values' that are 'selected' or 'unselected'.
-  // This allows me to determine if the checkbox is checked or not, which the 'action' function
-  // (see below) will use to update the database.
-  Object.entries(newData).forEach(([key, value]) => {
-    if (value === "selected" || value === "unselected") {
-      // Check if the 'key' is already in the 'existingData' array:
-      if (existingData.includes(key)) {
-        // If it is, then check if the 'value' is 'unselected':
-        if (value === "unselected") {
-          // If it is, then remove it from the 'existingData' array:
-          existingData.splice(existingData.indexOf(key), 1);
-        }
-      } else {
-        // If 'key' is not in the 'existingData' array, then check if the 'value' is 'selected':
-        if (value === "selected") {
-          // If it is, then add it to the 'checkboxValues':
-          checkboxValues.push(key);
-        }
-      }
-    }
-  });
-
-  // Now append the values from the 'existingData' to the 'checkboxValues' - knowing that
-  // the 'existingData' array will only contain values that were 'selected' in the form - with
-  // any 'unselected' values having been removed from it:
-  existingData.forEach((key) => {
-    checkboxValues.push(key);
-  });
-
-  return checkboxValues;
-};
+interface LoadData {
+  clinicosId: string;
+  visitationId: string;
+  primaryConditionName: string;
+}
 
 export default function DefineRecord() {
-  const { primaryConditions } = usePrimaryConditionStore();
-  const { handleStepChange } = useStepStore();
-  const { secondarySymptoms } = useSecondarySymptomStore();
+  const loaderData = useLoaderData<LoadData>();
 
-  // Find the index (zero indexed) of the first element in the 'primaryConditions' array that
-  // satisfies the provided 'hasPrimaryCondition' testing function. Previously the '/add/primary'
-  // route will have set the 'enabled' property of the selected primary condition to 'true'. And so
-  // the 'findIndex' method will return the index of that selected primary condition.
-  const selectedPrimaryCondition: number =
-    primaryConditions.findIndex(hasPrimaryCondition);
+  // Catálogo de síntomas según la condición primaria (IVU o EDAS).
+  // buildSymptomCatalog retorna un SecondarySymptom con los síntomas
+  // aplanados, labels, y un array checked[] todo en false.
+  // Se envuelve en array porque handleSecondarySymptomsClick opera
+  // sobre un array indexado por primaryId (siempre 0 aquí).
+  const isEDAS = loaderData.primaryConditionName === "EDAS";
+  const [symptomData, setSymptomData] =
+    useState<SecondarySymptom[]>(() => [
+      buildSymptomCatalog(
+        isEDAS ? "04" : "01",
+        loaderData.primaryConditionName,
+        isEDAS ? ALL_EDAS_SYMPTOMS : ALL_IVU_SYMPTOMS,
+        isEDAS ? ALL_EDAS_LABELS : ALL_IVU_LABELS
+      ),
+    ]);
 
-  // The array element (i.e. object) containing details of the secondary symptoms that correspond to
-  // the selected primary condition. Since the indexes of the primary conditions match the indexes
-  // of the secondary symptoms, we can use the index of the selected primary condition to get the
-  // corresponding secondary symptoms.
-  const selectedSymptoms = secondarySymptoms[selectedPrimaryCondition];
+  const selectedSymptoms = symptomData[0];
+  const checkedSecondarySymptoms: boolean[] = selectedSymptoms.checked;
 
-  // At the bottom of the form the 'Siguente' button has the type 'submit'. On clicking it the form
-  // is submitted and the following 'submitForm' function is called.
+  // Replica la lógica de useSecondarySymptomStore.handleSecondarySymptomsClick
+  // (store.ts líneas 221-242) con copias inmutables para que React
+  // detecte el cambio de estado (compara por referencia).
+  //
+  // primaryId: índice en el array symptomData (siempre 0 aquí)
+  // secondaryId: índice del síntoma clickeado en el array checked[]
+  //
+  // Lógica especial: si el síntoma es "Ninguno(a)" (último elemento),
+  // se desmarcan todos los demás y se marca solo "Ninguno(a)".
+  // Si se marca cualquier otro síntoma, se desmarca "Ninguno(a)".
+  const handleSecondarySymptomsClick = (
+    primaryId: number,
+    secondaryId: number
+  ) => {
+    setSymptomData((prev) =>
+      prev.map((secSympt, index) => {
+        if (index === primaryId) {
+          const newChecked = [...secSympt.checked];
+          newChecked[secondaryId] = !newChecked[secondaryId];
+
+          if (secSympt.additional[secondaryId] === "Ninguno(a)") {
+            newChecked.fill(false);
+            newChecked[secondaryId] = true;
+          } else {
+            newChecked[newChecked.length - 1] = false;
+          }
+
+          return { ...secSympt, checked: newChecked };
+        }
+        return secSympt;
+      })
+    );
+  };
+
+  // submitForm construye los datos desde React state (no desde el DOM)
+  // siguiendo el patrón de define.its.tsx y define.iras.tsx.
+  // Excepción: evacuaciones y vomitos se leen del form HTML porque
+  // son inputs numéricos renderizados por DefineCondition.
   const submit = useSubmit();
   function submitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     const form = e.target as HTMLFormElement;
-    const formData = new FormData(form);
+    const serializedData = new FormData();
+    const secondaryConditions: { [key: string]: string } = {};
 
-    // Get all checkboxes by name.
-    const checkboxes = form.querySelectorAll('input[type="checkbox"]');
-
-    // Iterate over each checkbox and manually add its value to the form data.
-    checkboxes.forEach(function (checkbox: Element) {
-      const input = checkbox as HTMLInputElement;
-      // I deliberately allow the value to be 'selected' or 'unselected' - as this will allow me to
-      // determine if the checkbox is checked or not (in the 'convertCheckboxValuesToArray' function).
-      formData.append(input.name, input.value);
-    });
-
-    // Get all number inputs by name.
-    const numbers = form.querySelectorAll('input[type="number"]');
-
-    // Iterate over each value and manually add its key and value to the form data.
-    numbers.forEach(function (count: Element) {
-      const input = count as HTMLInputElement;
-      formData.append(input.name, input.value);
-    });
-
-    formData.append(
-      "clinicosId",
-      KeyToString(useClinicalIDStore.getState().clinicosID)
+    checkedSecondarySymptoms.forEach(
+      (checked: boolean, idx: number) => {
+        if (checked) {
+          secondaryConditions[idx.toString()] =
+            selectedSymptoms.additional[idx] +
+            " - " +
+            selectedSymptoms.additional_details[idx];
+        }
+      }
     );
-    formData.append(
+
+    Object.keys(secondaryConditions).forEach((key) => {
+      serializedData.append(key, secondaryConditions[key]);
+    });
+
+    // Leer evacuaciones/vomitos del form HTML (inputs numéricos
+    // renderizados condicionalmente por DefineCondition para EDAS)
+    const evacInput =
+      form.querySelector<HTMLInputElement>('[name="evacuaciones"]');
+    const vomInput =
+      form.querySelector<HTMLInputElement>('[name="vomitos"]');
+    if (evacInput?.value) {
+      serializedData.append("evacuaciones", evacInput.value);
+    }
+    if (vomInput?.value) {
+      serializedData.append("vomitos", vomInput.value);
+    }
+
+    serializedData.append("clinicosId", loaderData.clinicosId);
+    serializedData.append(
       "visitationId",
-      KeyToString(useVisitationIDStore.getState().visitationID)
+      loaderData.visitationId
     );
 
-    submit(formData, {
+    submit(serializedData, {
       method: "POST",
       action: `/add/define/alpha`,
     });
@@ -138,49 +170,26 @@ export default function DefineRecord() {
     <main className="max-w-7xl mx-auto mt-12 py-4">
       <Form onSubmit={submitForm}>
         <Define
-          selectedPrimaryCondition={selectedPrimaryCondition}
+          selectedPrimaryCondition={0}
           selectedSymptoms={selectedSymptoms}
+          primaryConditionName={loaderData.primaryConditionName}
+          handleSecondarySymptomsClick={
+            handleSecondarySymptomsClick
+          }
         />
-        <div className="flex items-center justify-end gap-x-6 border-t-2 border-accent px-4 py-4 sm:px-8 mt-12">
-          <Link
-            to="/add/primary"
-            onClick={() => handleStepChange("02")}
-            className="btn btn-secondary btn-sm"
-          >
-            Previo
-          </Link>
-          {selectedSymptoms?.checked.every(anySelected) ? (
-            <button className="btn btn-sm" disabled>
-              Siguiente
-            </button>
-          ) : (
-            <button
-              type="submit"
-              onClick={() => handleStepChange("04")}
-              className="btn btn-primary btn-sm"
-            >
-              Siguiente
-            </button>
-          )}
-        </div>
+        <PrevioSiguiente />
       </Form>
     </main>
   );
 }
 
-// Runs on the server only.
-// If a non-GET request is made to the route, this action function is called before
-// any loader functions (if any).
+// Action: procesa el form submit en el servidor.
+// Recibe las secondary conditions como pares key-value y las guarda
+// en BD. También procesa evacuaciones/vomitos para EDAS.
 export async function action({ request }: ActionFunctionArgs) {
   const body = await request.text();
   const formData = new URLSearchParams(body);
 
-  // 'newSecondaryConditions' will be an object where the items are:
-  // (1) most keys will be the 'name' attribute of the checkboxes from 'DefineCondition.tsx'.
-  //     Thus the keys will be a concatenation of 'additional' array and the 'additional_details' array.
-  //     Both of these coming from the 'selectedSymptoms' object from the 'AppProps' object.
-  //     The values will be either 'selected' or 'unselected'.
-  // (2) the 'clinicosId' key. This is a unique identifier for the clinical record.
   const newSecondaryConditions = Object.fromEntries(
     formData
   ) as unknown as NewSecondaryCondition;
@@ -193,56 +202,85 @@ export async function action({ request }: ActionFunctionArgs) {
     ...secondaryConditionsArr
   } = newSecondaryConditions;
 
-  let evacuacionesValue = 0;
-  if (newSecondaryConditions.evacuaciones) {
-    evacuacionesValue = parseFloat(newSecondaryConditions.evacuaciones);
-    await updateEvacuation(visitationId, evacuacionesValue);
+  if (evacuaciones) {
+    await updateEvacuation(
+      visitationId,
+      parseFloat(evacuaciones)
+    );
   }
 
-  let vomitosValue = 0;
-  if (newSecondaryConditions.vomitos) {
-    vomitosValue = parseFloat(newSecondaryConditions.vomitos);
-    await updateVomitos(visitationId, vomitosValue);
+  if (vomitos) {
+    await updateVomitos(visitationId, parseFloat(vomitos));
   }
 
-  // This allows the user to use the back button from the 'revise' page to return to
-  // the 'define' page and make changes to the secondary conditions. If the user does
-  // this then the existing secondary conditions will be retrieved from the database
-  // and used to update the newly added secondary conditions.
-  const exisitingSecondaryConditions: { secondaryConditions: string[] } | null =
-    await getSecondaryConditions(visitationId);
+  // Extraer valores únicos de las secondary conditions
+  const arraySecondaryConditions: string[] =
+    convertCheckboxValuesToArray(
+      secondaryConditionsArr as { [key: string]: string }
+    );
 
-  // Always start with an empty array of secondary conditions.
-  let arraySecondaryConditions: string[] = [];
+  await updateSecondaryCondition(
+    visitationId,
+    arraySecondaryConditions
+  );
 
-  // Review each newly added secondary condition against the existing secondary conditions.
-  if (exisitingSecondaryConditions) {
-    if (exisitingSecondaryConditions.secondaryConditions.length > 0) {
-      arraySecondaryConditions = convertCheckboxValuesToArray(
-        secondaryConditionsArr,
-        exisitingSecondaryConditions.secondaryConditions
-      );
-    } else {
-      arraySecondaryConditions = convertCheckboxValuesToArray(
-        secondaryConditionsArr,
-        []
-      );
-    }
-  }
-
-  // Add the new secondary conditions to the database.
-  await updateSecondaryCondition(visitationId, arraySecondaryConditions);
-
-  return redirect(`/add/revise?vID=${visitationId}&cID=${clinicosId}`);
+  return redirect(
+    appPath(`/add/revise?vID=${visitationId}&cID=${clinicosId}`)
+  );
 }
 
-// Runs on the server only.
-// Runs for GET requests made to the route. But runs after any action functions (if any).
-// On the initial server render, it will provide data to the HTML document.
-// On navigations in the browser, Remix will call the function via fetch from the browser.
-export async function loader({ request }: LoaderFunctionArgs): Promise<null> {
+// Loader: lee cID/vID de URL params, consulta la Visitation en BD
+// para determinar la condición primaria (IVU o EDAS).
+export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserSession(request);
-  return null;
+
+  const url = new URL(request.url);
+  const clinicosId: string | null = url.searchParams.get("cID");
+  const visitationId: string | null = url.searchParams.get("vID");
+
+  if (!clinicosId) {
+    throw new Error(
+      "Alpha: No se proporcionó identificación del paciente"
+      + " (clinicosId)."
+    );
+  }
+  if (!visitationId) {
+    throw new Error(
+      "Alpha: No se proporcionó identificación de la visita"
+      + " (visitationId)."
+    );
+  }
+
+  const visitation: Visitation | null =
+    await getVisitation(visitationId);
+
+  if (!visitation) {
+    throw new Error(
+      "Alpha: Ninguna visita encontrada (visitation)."
+    );
+  }
+
+  // visitation.primaryConditions es String[] con los detail strings
+  // guardados por primary.tsx (ej: "Infección del tracto urinario").
+  // Buscamos cuál de los dos (IVU o EDAS) está presente.
+  const detail = visitation.primaryConditions.find(
+    (d) => d in DETAIL_TO_NAME
+  );
+
+  if (!detail) {
+    throw new Error(
+      "Alpha: No se encontró condición primaria válida"
+      + " (IVU o EDAS) en la visita."
+    );
+  }
+
+  const primaryConditionName = DETAIL_TO_NAME[detail];
+
+  return Response.json({
+    clinicosId,
+    visitationId,
+    primaryConditionName,
+  });
 }
 
 export function headers() {
@@ -253,7 +291,6 @@ export function headers() {
 
 // All errors for this route will be caught by this ErrorBoundary.
 export function ErrorBoundary() {
-  // To obtain the thrown object, we use the 'useRouteError' hook.
   const error = useRouteError();
 
   return (

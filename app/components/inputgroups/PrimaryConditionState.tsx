@@ -1,9 +1,7 @@
 import { useSubmit } from "@remix-run/react";
 import PrimaryCondition from "~/components/inputgroups/PrimaryCondition";
-import KeyToString from "~/utilities/KeyToString";
 import {
   usePrimaryConditionStore,
-  useStepStore,
   useClinicalIDStore,
   useVisitationIDStore,
 } from "~/state/store";
@@ -11,7 +9,6 @@ import {
 export default function ToggleGroup() {
   const { primaryConditions, handlePrimaryConditionChange } =
     usePrimaryConditionStore();
-  const { handleStepChange } = useStepStore();
   const submit = useSubmit();
 
   function submitForm(
@@ -25,17 +22,16 @@ export default function ToggleGroup() {
     clickedPrimary.append("detail", detail);
     clickedPrimary.append(
       "clinicosID",
-      KeyToString(useClinicalIDStore.getState().clinicosID)
+      useClinicalIDStore.getState().clinicosID ?? "null"
     );
     clickedPrimary.append(
       "visitationID",
-      KeyToString(useVisitationIDStore.getState().visitationID)
+      useVisitationIDStore.getState().visitationID ?? "null"
     );
 
     // Primary conditions is an array of objects. Use the 'id' to match up the appropriate object
     // and set the 'enabled' property of that object to true.
     handlePrimaryConditionChange(id);
-    handleStepChange("03");
 
     submit(clickedPrimary, {
       method: "POST",

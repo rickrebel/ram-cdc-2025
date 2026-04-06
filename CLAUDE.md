@@ -84,7 +84,7 @@ Multi-step form under `_app.add._new/`:
 4. `define.tsx` / `define.iras.tsx` / etc. → síntomas secundarios
 5. `revise.tsx` → crea `Visitation` vinculada al `Clinicos`
 
-Los IDs generados en cada paso se guardan en los Zustand stores (`app/state/store.ts`). **Si el usuario recarga la página a mitad del flujo, los stores se vacían y el flujo se rompe** — es una limitación conocida de la arquitectura actual, no modificar sin discutir.
+Los IDs generados en cada paso se guardan en Zustand stores (`app/state/store.ts`). Las rutas `define.*` ya fueron migradas a URL params + DB loaders + `useState` local (sesiones 1-3 del refactor). La barra de progreso (Steps.tsx) se deriva de `useLocation()`, no de un store. Los ID stores (`useClinicalIDStore`, etc.) y `usePrimaryConditionStore` siguen activos para el flujo de características → primary.
 
 ---
 

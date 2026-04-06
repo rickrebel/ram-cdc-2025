@@ -1,8 +1,3 @@
-import {
-  usePrimaryConditionStore,
-  useSecondarySymptomStore,
-} from "~/state/store";
-
 type SymptomOption = {
   id: string;
   primary: string;
@@ -14,6 +9,11 @@ type SymptomOption = {
 interface IProps {
   selectedPrimaryCondition: number;
   selectedSymptoms: SymptomOption;
+  primaryConditionName: string;
+  handleSecondarySymptomsClick: (
+    primaryId: number,
+    secondaryId: number
+  ) => void;
 }
 
 const grouping = function (
@@ -68,9 +68,9 @@ const grouping = function (
 export default function Define({
   selectedPrimaryCondition,
   selectedSymptoms,
+  primaryConditionName,
+  handleSecondarySymptomsClick,
 }: IProps) {
-  const { primaryConditions } = usePrimaryConditionStore();
-  const { handleSecondarySymptomsClick } = useSecondarySymptomStore();
   const associatedSymptoms: string[] = selectedSymptoms?.additional;
   const associatedSymptomDetails: string[] =
     selectedSymptoms?.additional_details;
@@ -95,7 +95,7 @@ export default function Define({
             )
           )}
         </div>
-        {primaryConditions[selectedPrimaryCondition].name === "EDAS" &&
+        {primaryConditionName === "EDAS" &&
           associatedSymptomChecked[indexOfDiarrea] && (
             <div className="mt-6 grid grid-cols-1 gap-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:px-6 px-4">
               <div className="bg-accent border rounded-md flex items-center h-16">
@@ -117,7 +117,7 @@ export default function Define({
               </div>
             </div>
           )}
-        {primaryConditions[selectedPrimaryCondition].name === "EDAS" &&
+        {primaryConditionName === "EDAS" &&
           associatedSymptomChecked[indexOfVomito] && (
             <div className="mt-6 grid grid-cols-1 gap-1 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:px-6 px-4">
               <div className="bg-accent border rounded-md flex items-center h-16">

@@ -12,7 +12,7 @@ import {
   typeIrasDiagnostic,
 } from "~/algorithms/utilitiesTypes";
 import { typeVisitationStringified } from "~/utilities/types";
-import { SecondarySymptom } from "~/state/store";
+import { SecondarySymptom } from "~/utilities/buildSymptomCatalog";
 
 const IRASBajas = (
   visitation: typeVisitationStringified,

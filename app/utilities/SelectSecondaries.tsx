@@ -1,17 +1,9 @@
 import Select, { ActionMeta } from "react-select";
 import makeAnimated from "react-select/animated";
-import { useSecondarySymptomStore } from "~/state/store";
 import { SSDropDown } from "~/utilities/types";
+import type { SecondarySymptom } from "~/utilities/buildSymptomCatalog";
 
 const animatedComponents = makeAnimated();
-
-type SecondarySymptom = {
-  id: string;
-  primary: string;
-  additional: string[];
-  additional_details: string[];
-  checked: boolean[];
-};
 
 export const carrot = (
   primaryId: number,
@@ -31,17 +23,17 @@ export const carrot = (
   const updatedSecondarySymptoms = secondarySymptoms.map(
     (secSympt: SecondarySymptom, id: number) => {
       if (id === primaryId) {
-        const newItem = { ...secSympt };
+        const newChecked = [...secSympt.checked];
 
         trueSecondaryIds.forEach((obj) => {
-          newItem.checked[obj.id] = true;
+          newChecked[obj.id] = true;
         });
 
         if (lastAactionType.action === "remove-value") {
-          newItem.checked[lastAactionType.removedValue.id] = false;
+          newChecked[lastAactionType.removedValue.id] = false;
         }
 
-        return { ...newItem };
+        return { ...secSympt, checked: newChecked };
       } else {
         return { ...secSympt };
       }
@@ -58,10 +50,10 @@ const SelectSecondaries = (
   MainPrimary: SSDropDown,
   handleITSClickID: number,
   sanStart: string,
-  sanEnd: string
+  sanEnd: string,
+  secondarySymptoms: SecondarySymptom[],
+  setSecondarySymptoms: (ss: SecondarySymptom[]) => void
 ) => {
-  const { secondarySymptoms, setSecondarySymptoms } =
-    useSecondarySymptomStore();
 
   if (!MainPrimary) return null;
 

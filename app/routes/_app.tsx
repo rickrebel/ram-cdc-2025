@@ -18,7 +18,6 @@ import AppHeader from "~/components/navigation/AppNavigation";
 
 import {
   usePrimaryConditionStore,
-  useSecondarySymptomStore,
   useClinicalIDStore,
   useContactoIDStore,
   useOtrosIDStore,
@@ -31,9 +30,6 @@ import { AppProps } from "~/utilities/types";
 export default function MainAppLayout() {
   const { primaryConditions, setPrimaryConditions } =
     usePrimaryConditionStore();
-
-  const { secondarySymptoms, setSecondarySymptoms } =
-    useSecondarySymptomStore();
 
   const { setClinicalID } = useClinicalIDStore();
   const { setContactoID } = useContactoIDStore();
@@ -51,13 +47,6 @@ export default function MainAppLayout() {
       return { ...condition, enabled: false };
     });
     setPrimaryConditions(flushPrimary);
-
-    const flushSecondary = secondarySymptoms.map((condition) => {
-      const newSecondary = { ...condition };
-      newSecondary.checked = new Array(condition.checked.length).fill(false);
-      return newSecondary;
-    });
-    setSecondarySymptoms(flushSecondary);
 
     setClinicalID("");
     setContactoID("");

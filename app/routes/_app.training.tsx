@@ -7,27 +7,17 @@ import XCircleIcon from "~/icons/xcircle_icon";
 import { requireUserSession } from "~/server/auth.server";
 import TrainingCard from "~/components/inputgroups/TrainingCard";
 
-import vidEDA from "~/training/EDA_compressed.mp4";
-import vidITS from "~/training/ITS_compressed.mp4";
-import vidIVU from "~/training/IVU_compressed.mp4";
-
-interface VideoSectionProps {
-  title: string;
-  videoUrl: string;
-}
-
-const VideoSection: React.FC<VideoSectionProps> = ({ title, videoUrl }) => (
+const VideoSection: React.FC<{ title: string }> = ({ title }) => (
   <div className="border border-secondary rounded-md shadow-lg my-8">
     <div className="flex items-center">
-      <h3 className="text-base md:text-2xl font-bold tracking-tight text-primary">
+      <h3 className="text-base md:text-2xl font-bold tracking-tight
+        text-primary">
         {title}
       </h3>
     </div>
-    <div className="flex items-center justify-center pb-8">
-      <video controls controlsList="nodownload">
-        <source src={videoUrl} type="video/mp4" />
-        Su navegador no soporta la etiqueta de video.
-      </video>
+    <div className="flex items-center justify-center pb-8
+      text-gray-500 italic">
+      El video estará disponible próximamente.
     </div>
   </div>
 );
@@ -47,15 +37,12 @@ export default function Training() {
           <div className="grid grid-cols-1">
             <VideoSection
               title="Enfermedad Diarreica Aguda - Manejo de Muestras"
-              videoUrl={vidEDA}
             />
             <VideoSection
               title="Infecciones de Transmisión Sexual - Manejo de Muestras"
-              videoUrl={vidITS}
             />
             <VideoSection
               title="Infecciones de Vías Urinarias - Manejo de Muestras"
-              videoUrl={vidIVU}
             />
           </div>
         </div>

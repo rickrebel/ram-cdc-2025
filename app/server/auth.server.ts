@@ -3,6 +3,7 @@ const { hash, compare } = pkg;
 import { Prisma } from "@prisma/client";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { prisma } from "~/server/database.server";
+import { appPath } from "~/server/basepath.server";
 import { Profile } from "@prisma/client";
 import { stat } from "fs";
 
@@ -28,13 +29,15 @@ if (!SESSION_SECRET) {
   throw new Error("Se debe establecer la variable de entorno SESSION_SECRET.");
 }
 
+const BASE_PATH = process.env.BASE_PATH || "";
+
 const sessionStorage = createCookieSessionStorage({
   cookie: {
     secure: process.env.NODE_ENV === "production",
-
     secrets: [SESSION_SECRET],
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: BASE_PATH ? `/${BASE_PATH}` : "/",
   },
 });
 
@@ -70,7 +73,7 @@ export async function requireUserSession(request: Request): Promise<string> {
   const profileId: string | null = await getProfileFromSession(request);
 
   if (!profileId) {
-    throw redirect("/auth?mode=login");
+    throw redirect(appPath("/auth?mode=login"));
   }
 
   return profileId;
@@ -81,7 +84,7 @@ export async function destroyUserSession(request: Request) {
     request.headers.get("Cookie")
   );
 
-  return redirect("/", {
+  return redirect(appPath("/"), {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
     },
@@ -224,7 +227,7 @@ export async function signup(credentials: SignupCredentials) {
 
       return { newProfile };
     });
-    return createUserSession(result.newProfile.id, "/add/characteristics");
+    return createUserSession(result.newProfile.id, appPath("/add/characteristics"));
   } catch {
     throw new HttpError("Error al registrarse.", 500);
   }
@@ -281,7 +284,7 @@ export async function login(credentials: LoginCredentials) {
       });
     });
 
-    return createUserSession(existingProfile.id, "/add/characteristics");
+    return createUserSession(existingProfile.id, appPath("/add/characteristics"));
   } catch {
     throw new HttpError("Error al iniciar sesión.", 500);
   }

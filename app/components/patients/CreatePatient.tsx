@@ -15,9 +15,7 @@ import NewClinicos from "~/components/patients/NewClinicos";
 import NewOcupacion from "~/components/patients/NewOcupacion";
 import NewOtros from "~/components/patients/NewOtros";
 import GenericButton from "~/components/inputgroups/GenericButton";
-import KeyToString from "~/utilities/KeyToString";
 import {
-  useStepStore,
   useClinicalIDStore,
   useContactoIDStore,
   useOcupacionIDStore,
@@ -61,10 +59,7 @@ interface ActionData {
   validation_error?: boolean;
 }
 
-const renderButtons = (
-  nextButton: boolean,
-  handleStepChange: (id: string) => void
-) => {
+const renderButtons = (nextButton: boolean) => {
   if (useVisitationIDStore.getState().visitationID) {
     if (nextButton) {
       // User submitted the form, there were no errors.
@@ -76,7 +71,6 @@ const renderButtons = (
           <GenericButton text="Actualizar" type="submit" />
           <Link
             to="/add/primary"
-            onClick={() => handleStepChange("02")}
             className="btn btn-primary btn-sm"
           >
             Siguiente
@@ -117,7 +111,6 @@ const CreatePatient: React.FC<IProps> = ({
   formRef,
   finalData,
 }) => {
-  const { handleStepChange } = useStepStore();
   const { setClinicalID } = useClinicalIDStore();
   const { setContactoID } = useContactoIDStore();
   const { setOtrosID } = useOtrosIDStore();
@@ -249,23 +242,23 @@ const CreatePatient: React.FC<IProps> = ({
 
     submitThis.append(
       "clinicosID",
-      KeyToString(useClinicalIDStore.getState().clinicosID)
+      useClinicalIDStore.getState().clinicosID ?? "null"
     );
     submitThis.append(
       "contactoID",
-      KeyToString(useContactoIDStore.getState().contactoID)
+      useContactoIDStore.getState().contactoID ?? "null"
     );
     submitThis.append(
       "otrosID",
-      KeyToString(useOtrosIDStore.getState().otrosID)
+      useOtrosIDStore.getState().otrosID ?? "null"
     );
     submitThis.append(
       "ocupacionID",
-      KeyToString(useOcupacionIDStore.getState().ocupacionID)
+      useOcupacionIDStore.getState().ocupacionID ?? "null"
     );
     submitThis.append(
       "visitationID",
-      KeyToString(useVisitationIDStore.getState().visitationID)
+      useVisitationIDStore.getState().visitationID ?? "null"
     );
 
     submitThis.append("countriesMigration", JSON.stringify(selectedCountries));
@@ -517,7 +510,7 @@ const CreatePatient: React.FC<IProps> = ({
               >
                 Cancelar
               </button>
-              {renderButtons(nextButton, handleStepChange)}
+              {renderButtons(nextButton)}
             </div>
           </div>
         </div>

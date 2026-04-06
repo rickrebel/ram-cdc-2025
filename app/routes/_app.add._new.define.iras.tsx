@@ -1,4 +1,10 @@
-import { Form, useSubmit, useRouteError } from "@remix-run/react";
+import { useState } from "react";
+import {
+  useLoaderData,
+  Form,
+  useSubmit,
+  useRouteError,
+} from "@remix-run/react";
 import {
   redirect,
   LoaderFunctionArgs,
@@ -6,19 +12,19 @@ import {
 } from "@remix-run/node";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { requireUserSession } from "~/server/auth.server";
+import { appPath } from "~/server/basepath.server";
 import { updateSecondaryCondition } from "~/server/updates.server";
-import PrevioSiguiente from "~//components/inputgroups/PrevioSiguiente";
-import KeyToString from "~/utilities/KeyToString";
+import PrevioSiguiente from "~/components/inputgroups/PrevioSiguiente";
 import convertCheckboxValuesToArray from "~/utilities/ConvertCheckBoxToArray";
-import hasPrimaryCondition from "~/utilities/HasPrimary";
 import SelectSecondaries from "~/utilities/SelectSecondaries";
 import {
-  usePrimaryConditionStore,
-  useSecondarySymptomStore,
-  useClinicalIDStore,
-  useVisitationIDStore,
-  SecondarySymptom,
-} from "~/state/store";
+  buildSymptomCatalog,
+  type SecondarySymptom,
+} from "~/utilities/buildSymptomCatalog";
+import {
+  ALL_IRAS_SYMPTOMS,
+  ALL_IRAS_LABELS,
+} from "~/algorithms/IRAS/utilitiesSymptoms";
 import { getSymptomsDropdowns } from "~/algorithms/IRAS/utilitiesForDiagnosis";
 
 type NewSecondaryCondition = {
@@ -27,27 +33,22 @@ type NewSecondaryCondition = {
   [key: string]: string;
 };
 
+interface LoadData {
+  clinicosId: string;
+  visitationId: string;
+}
+
 export default function DefineRecord() {
-  const { primaryConditions } = usePrimaryConditionStore();
-  const { secondarySymptoms } = useSecondarySymptomStore();
+  const loaderData = useLoaderData<LoadData>();
 
-  // Find the index (zero indexed) of the first element in the 'primaryConditions' array
-  // that satisfies the provided 'hasPrimaryCondition' testing function.
-  const selectedPrimaryCondition: number =
-    primaryConditions.findIndex(hasPrimaryCondition);
+  // Catálogo de síntomas secundarios para IRAS, construido localmente
+  const [symptomData, setSymptomData] = useState<SecondarySymptom[]>(
+    () => [buildSymptomCatalog(
+      "03", "IRAS", ALL_IRAS_SYMPTOMS, ALL_IRAS_LABELS
+    )]
+  );
 
-  // Expect that the 'selectedPrimaryCondition' is 2 (IRAS) - assuming you haven't
-  // changed the order of the primary conditions in the store.
-  if (selectedPrimaryCondition !== 2) {
-    throw new Error("Primary condition not found");
-  }
-
-  // The array element (an object) containing details of the secondary symptoms that
-  // correspond to the selected primary condition. Assumes the indexes of the primary
-  // conditions (in the store) match the indexes of the secondary symptoms (also in the store).
-  const selectedSymptoms = secondarySymptoms[selectedPrimaryCondition];
-
-  // The 'checked' array is an array of booleans. Initialized to all 'false' values.
+  const selectedSymptoms = symptomData[0];
   const checkedSecondarySymptoms: SecondarySymptom["checked"] =
     selectedSymptoms.checked;
 
@@ -55,7 +56,6 @@ export default function DefineRecord() {
   function submitForm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Get all inputs by name.
     const serializedData = new FormData();
     const secondaryConditions: { [key: string]: string } = {};
 
@@ -69,14 +69,8 @@ export default function DefineRecord() {
       serializedData.append(key, secondaryConditions[key]);
     });
 
-    serializedData.append(
-      "clinicosId",
-      KeyToString(useClinicalIDStore.getState().clinicosID)
-    );
-    serializedData.append(
-      "visitationId",
-      KeyToString(useVisitationIDStore.getState().visitationID)
-    );
+    serializedData.append("clinicosId", loaderData.clinicosId);
+    serializedData.append("visitationId", loaderData.visitationId);
 
     submit(serializedData, {
       method: "POST",
@@ -102,20 +96,15 @@ export default function DefineRecord() {
       <Form onSubmit={submitForm}>
         <div className="grid grid-cols-1 gap-y-4 items-center mx-auto md:max-w-3xl md:gap-x-3 md:gap-y-6 md:grid-cols-6 lg:gap-x-10 lg:max-w-5xl xl:max-w-7xl text-sm sm:text-base font-medium">
           {SelectSecondaries(
-            // String representing the sexo al nacer. Not needed for IRAS.
             null,
-            // HTML name used to identify the dropdown menu.
             "baja_bronquitis",
-            // String that appears above the dropdown menu.
             "El paciente presenta tos de inicio agudo, más uno de los siguiente symptomas:",
-            // The object created containing the secondary symptoms for Bronquitis Aguda.
             baja_bronquitis,
-            // The index of the primary condition corresponding to IRAS.
-            2,
-            // The starting column for the dropdown menu.
+            0,
             "lg:col-start-1",
-            // The ending column for the dropdown menu.
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -123,9 +112,11 @@ export default function DefineRecord() {
             "baja_ante_epoc",
             "El paciente tiene antecedente de EPOC o enfermedad pulmonar crónica:",
             baja_ante_epoc,
-            2,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -133,9 +124,11 @@ export default function DefineRecord() {
             "baja_exac_epoc",
             "El paciente presenta exacerbación de EPOC:",
             baja_exac_epoc,
-            2,
+            0,
             "lg:col-start-1",
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -143,9 +136,11 @@ export default function DefineRecord() {
             "baja_enviar_sec_nivel",
             "El paciente tiene exacerbación adicional de EPOC:",
             baja_enviar_sec_nivel,
-            2,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -153,9 +148,11 @@ export default function DefineRecord() {
             "baja_neumonia",
             "El paciente presenta tos de inicio agudo más uno de los siguientes:",
             baja_neumonia,
-            2,
+            0,
             "lg:col-start-1",
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -163,9 +160,11 @@ export default function DefineRecord() {
             "alta_oma",
             "El paciente presenta tos de inicio agudo más uno de los siguientes:",
             alta_oma,
-            2,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -173,9 +172,11 @@ export default function DefineRecord() {
             "alta_faringitis",
             "El paciente presenta tos de inicio agudo más uno de los siguientes:",
             alta_faringitis,
-            2,
+            0,
             "lg:col-start-1",
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -183,9 +184,11 @@ export default function DefineRecord() {
             "alta_sinusitis_sintomatic",
             "El paciente presenta Sinusitis sintomático:",
             alta_sinusitis_sintomatic,
-            2,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -193,9 +196,11 @@ export default function DefineRecord() {
             "alta_sinusitis_hospital",
             "Para la Sinusitis sintomático, ¿alguno de los siguientes síntomas está presente?",
             alta_sinusitis_hospital,
-            2,
+            0,
             "lg:col-start-1",
-            "lg:col-start-1"
+            "lg:col-start-1",
+            symptomData,
+            setSymptomData
           )}
 
           {SelectSecondaries(
@@ -203,9 +208,11 @@ export default function DefineRecord() {
             "alta_sinusitis_antibiotic",
             "El paciente presenta los siguientes síntomas adicionales de Sinusitis:",
             alta_sinusitis_antibiotic,
-            2,
+            0,
             "lg:col-start-4",
-            "lg:col-start-4"
+            "lg:col-start-4",
+            symptomData,
+            setSymptomData
           )}
         </div>
 
@@ -235,7 +242,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Add the new secondary conditions to the database.
   await updateSecondaryCondition(visitationId, arraySecondaryConditions);
 
-  return redirect(`/add/revise?vID=${visitationId}&cID=${clinicosId}`);
+  return redirect(appPath(`/add/revise?vID=${visitationId}&cID=${clinicosId}`));
 }
 
 // Runs on the server only.
@@ -244,13 +251,23 @@ export async function action({ request }: ActionFunctionArgs) {
 // On navigations in the browser, Remix will call the function via fetch from the browser.
 export async function loader({ request }: LoaderFunctionArgs) {
   await requireUserSession(request);
-  return null;
-}
 
-export function headers() {
-  return {
-    "Cache-Control": "max-age=3",
-  };
+  const url = new URL(request.url);
+  const clinicosId: string | null = url.searchParams.get("cID");
+  const visitationId: string | null = url.searchParams.get("vID");
+
+  if (!clinicosId) {
+    throw new Error(
+      "No se proporcionó identificación del paciente (clinicosId)."
+    );
+  }
+  if (!visitationId) {
+    throw new Error(
+      "No se proporcionó identificación del paciente (visitationId)."
+    );
+  }
+
+  return Response.json({ clinicosId, visitationId });
 }
 
 // All errors for this route will be caught by this ErrorBoundary.

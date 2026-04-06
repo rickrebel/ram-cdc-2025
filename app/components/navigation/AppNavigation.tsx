@@ -7,7 +7,6 @@ import logo from "~/images/Logos/salud.webp";
 import { loader } from "~/routes/_app";
 
 import { AppProps } from "~/utilities/types";
-import { useStepStore } from "~/state/store";
 
 interface MainNavigationProps {
   flushState: AppProps["flushState"];
@@ -23,7 +22,6 @@ const navigation = [
 ];
 
 export default function MainNavigation({ flushState }: MainNavigationProps) {
-  const { handleStepChange } = useStepStore();
 
   // On first visit, 'profileId' will be undefined. Otherwise it will be a string.
   const profileId: string | null = useLoaderData<typeof loader>();
@@ -55,7 +53,6 @@ export default function MainNavigation({ flushState }: MainNavigationProps) {
                       onClick={(event) => {
                         event.stopPropagation();
                         if (item.name === "Añadir Nuevo Registro") {
-                          handleStepChange("01");
                           flushState();
                         }
                       }}
@@ -83,7 +80,6 @@ export default function MainNavigation({ flushState }: MainNavigationProps) {
                     onClick={(event) => {
                       event.stopPropagation();
                       if (item.name === "Añadir Nuevo Registro") {
-                        handleStepChange("01");
                         flushState();
                       }
                     }}
