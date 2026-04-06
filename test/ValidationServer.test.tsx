@@ -57,28 +57,16 @@ describe("Validation Server Tests", () => {
   });
 
   it("should validate password correctly", () => {
-    // A valid password.
-    expect(isValidPassword("Password$123")).toBe(true);
+    // A valid password (7+ characters).
+    expect(isValidPassword("abcdefg")).toBe(true);
+    expect(isValidPassword("1234567")).toBe(true);
 
-    // The password must contain at least one uppercase letter ([A-Z]).
-    expect(isValidPassword("password123%")).toBe(false);
-    expect(isValidPassword("Password123%")).toBe(true);
+    // Too short (less than 7 characters).
+    expect(isValidPassword("abcdef")).toBe(false);
+    expect(isValidPassword("123456")).toBe(false);
 
-    // The password must contain at least one lowercase letter ([a-z]).
-    expect(isValidPassword("PASSWORD123$")).toBe(false);
-    expect(isValidPassword("PaSSWORD123$")).toBe(true);
-
-    // The password must contain at least one digit ([0-9]).
-    expect(isValidPassword("Password$")).toBe(false);
-    expect(isValidPassword("Password$1")).toBe(true);
-
-    // The password must contain at least one special character ([^A-Za-z0-9]).
-    expect(isValidPassword("Password123")).toBe(false);
-    expect(isValidPassword("Password$12")).toBe(true);
-
-    // The password must be at least 7 characters long.
-    expect(isValidPassword("Pas$12")).toBe(false);
-    expect(isValidPassword("Pas$123")).toBe(true);
+    // Empty or falsy values.
+    expect(isValidPassword("")).toBe(false);
   });
 
   it("should validate Cedula Prof correctly", () => {
@@ -122,10 +110,10 @@ describe("Validation Server Tests", () => {
     };
     expect(() => validateLoginInput(invalidEmail)).toThrow();
 
-    // Invalid password should throw.
+    // Invalid password (too short) should throw.
     const invalidPasswordInput: LoginCredentials = {
       email: "test@example.com",
-      password: "password123",
+      password: "abc",
       whichEstado: "CDMX",
     };
     expect(() => validateLoginInput(invalidPasswordInput)).toThrow();
@@ -192,7 +180,7 @@ describe("Validation Server Tests", () => {
     };
     expect(() => validateSignUpInput(invalidEmail)).toThrow();
 
-    // Invalid password should throw.
+    // Invalid password (too short) should throw.
     const invalidPassword: SignupCredentials = {
       nombre: "John",
       apellidoPaterno: "Doe",
@@ -200,7 +188,7 @@ describe("Validation Server Tests", () => {
       institution: "UNAM",
       whichEstado: "CDMX",
       email: "test@example.com",
-      password: "password123",
+      password: "abc",
     };
     expect(() => validateSignUpInput(invalidPassword)).toThrow();
   });

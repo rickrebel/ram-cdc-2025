@@ -12,13 +12,13 @@ Este documento es para Ricardo: explica cómo funcionan las tecnologías del sta
 | **React** | Librería de UI: los componentes visuales |
 | **TypeScript** | Tipado estático sobre JavaScript |
 | **Tailwind + DaisyUI** | Estilos utilitarios + componentes prearmados |
-| **Prisma** | ORM: la capa que traduce código TypeScript a consultas MongoDB |
-| **MongoDB Atlas** | Base de datos en la nube (documentos, no tablas) |
+| **Prisma** | ORM: la capa que traduce código TypeScript a consultas PostgreSQL |
+| **PostgreSQL** | Base de datos relacional |
 | **Zustand** | Estado compartido en el cliente entre componentes React |
 | **Recharts** | Gráficas en React (barras, radar, pastel) |
 | **OpenLayers** | Mapas interactivos con datos geográficos |
 
-La combinación Remix + Prisma + MongoDB es una arquitectura "full-stack en un solo repo": el mismo archivo de ruta puede tener código de servidor (queries a la BD) y código de cliente (componentes visuales). No hay un backend separado como en Django.
+La combinación Remix + Prisma + PostgreSQL es una arquitectura "full-stack en un solo repo": el mismo archivo de ruta puede tener código de servidor (queries a la BD) y código de cliente (componentes visuales). No hay un backend separado como en Django.
 
 ---
 
@@ -59,7 +59,7 @@ export async function action({ request }: ActionFunctionArgs) {
   const body = await request.text();
   const formData = new URLSearchParams(body);
   const curp = formData.get("/add/characteristics?curp") || "";
-  const clinicos = await getPatientByCurp(curp); // consulta MongoDB vía Prisma
+  const clinicos = await getPatientByCurp(curp); // consulta PostgreSQL vía Prisma
   return Response.json({ selected: clinicos });
 }
 
@@ -94,14 +94,14 @@ Los archivos en `app/server/` tienen el sufijo `.server.ts`. Remix/Vite usa  est
 
 ---
 
-## Prisma + MongoDB Atlas
+## Prisma + PostgreSQL
 
-📖 Prisma con MongoDB: https://www.prisma.io/docs/orm/overview/databases/mongodb
+📖 Prisma con PostgreSQL: https://www.prisma.io/docs/orm/overview/databases/postgresql
 📖 Referencia del schema: https://www.prisma.io/docs/orm/reference/prisma-schema-reference
 
 ### Qué hace Prisma aquí
 
-Prisma es el intermediario entre el código TypeScript y MongoDB. Tú escribes  TypeScript; Prisma lo traduce a operaciones de MongoDB. Define los modelos en
+Prisma es el intermediario entre el código TypeScript y PostgreSQL. Tú escribes TypeScript; Prisma lo traduce a consultas SQL. Define los modelos en
 `prisma/schema.prisma`.
 
 ### Cómo está configurada la conexión
@@ -110,7 +110,7 @@ Prisma es el intermediario entre el código TypeScript y MongoDB. Tú escribes  
 
 ```ts
 // En desarrollo, reutiliza la misma conexión entre hot-reloads
-// (evita agotar las conexiones disponibles en MongoDB Atlas)
+// (evita agotar las conexiones disponibles en PostgreSQL)
 if (process.env.NODE_ENV === "production") {
   prisma = new PrismaClient();
 } else {
@@ -138,15 +138,19 @@ npx prisma studio     # Abre un explorador visual de la BD en el navegador
                       # Útil para inspeccionar datos sin escribir queries
 ```
 
-### Diferencia importante con SQL
+### IDs y relaciones
 
-MongoDB no tiene tablas ni foreign keys reales. Prisma declara las relaciones en el schema, pero MongoDB las implementa guardando el ID del documento relacionado como un campo string. Si borras un documento padre, los hijos
-no se borran automáticamente — Prisma gestiona esto en el código de la app.
-
-El campo ID en MongoDB se llama `_id` (ObjectId), mapeado así en el schema:
+PostgreSQL tiene foreign keys reales con integridad referencial. Las relaciones definidas en el schema de Prisma se traducen a constraints en la BD. Los IDs primarios usan `cuid()` generados por Prisma:
 
 ```prisma
-id String @id @default(auto()) @map("_id") @db.ObjectId
+id String @id @default(cuid())
+```
+
+Para cambios en el schema, Prisma usa migraciones:
+
+```bash
+npx prisma migrate dev --name descripcion_del_cambio
+# Genera un archivo SQL en prisma/migrations/ y lo aplica
 ```
 
 ---
@@ -157,7 +161,7 @@ id String @id @default(auto()) @map("_id") @db.ObjectId
 
 ### Qué problema resuelve
 
-El flujo de registro de pacientes tiene 5 pasos en rutas distintas. Cuando el usuario termina el paso 1 y crea un registro `Clinicos`, el ID generado por MongoDB necesita estar disponible en el paso 2, 3, 4 y 5. No se puede pasar por URL (es un ID interno) ni por el servidor (el usuario aún no termina).
+El flujo de registro de pacientes tiene 5 pasos en rutas distintas. Cuando el usuario termina el paso 1 y crea un registro `Clinicos`, el ID generado necesita estar disponible en el paso 2, 3, 4 y 5. No se puede pasar por URL (es un ID interno) ni por el servidor (el usuario aún no termina).
 
 Zustand guarda ese ID en memoria del navegador mientras la sesión está abierta.
 
@@ -251,7 +255,7 @@ Los datos los prepara `app/server/charting.server.ts` y los recibe el componente
 
 ### Cómo se usa en el proyecto
 
-OpenLayers renderiza el mapa de estados de México y la ubicación de hospitales.  Los datos geográficos (polígonos de estados) están en MongoDB como documentos `StateGeoJson` y se cargan vía loader. Las coordenadas de hospitales vienen del modelo `Hospital` (campos `latitude` y `longitude`).
+OpenLayers renderiza el mapa de estados de México y la ubicación de hospitales.  Los datos geográficos (polígonos de estados) están en la tabla `StateGeoJson` y se cargan vía loader. Las coordenadas de hospitales vienen del modelo `Hospital` (campos `latitude` y `longitude`).
 
 OpenLayers es una librería imperativa (no declarativa como Recharts), por lo que interactúa con un elemento `<canvas>` del DOM directamente dentro de un `useEffect` de React.
 
@@ -269,7 +273,7 @@ app/
   utilities/       ← tipos TypeScript compartidos y datos de referencia
 prisma/
   schema.prisma    ← definición de modelos y relaciones
-scripts/           ← seeds para poblar datos de referencia en MongoDB
+scripts/           ← seeds para poblar datos de referencia y gestión de usuarios
 data/              ← archivos JSON fuente usados por los seeds
 docs/              ← esta documentación
 ```
@@ -294,8 +298,8 @@ El alias `~/` siempre apunta a `app/`. Es decir, `~/server/database.server` equi
 → Empieza en `app/components/` buscando por el dominio (patients, inDRE, charts, auth, navigation).
 
 **Si quieres cambiar el schema de la BD:**
-→ Edita `prisma/schema.prisma`, luego corre `npx prisma generate`.
-→ MongoDB no requiere migraciones (es schema-less), pero el cliente Prisma sí necesita regenerarse para que TypeScript reconozca los nuevos campos.
+→ Edita `prisma/schema.prisma`, luego corre `npx prisma migrate dev --name descripcion`.
+→ Esto genera un archivo de migración SQL y regenera el cliente Prisma.
 
 **Si quieres entender la lógica de los algoritmos clínicos:**
 → Ver `docs/PLATAFORMA.md` para el contexto médico, luego `app/algorithms/` para la implementación.

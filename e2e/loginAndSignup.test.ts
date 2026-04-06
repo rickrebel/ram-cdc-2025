@@ -88,7 +88,7 @@ test.describe.serial("Login and Signup Testing", () => {
       label: randomData.randomState,
     });
     await page.fill('input[name="email"]', randomData.randomEmail);
-    await page.fill('input[name="password"]', "aaaaaaa");
+    await page.fill('input[name="password"]', "abc");
 
     // Find and click the "Crear cuenta" button.
     await findByTextThenClick(page, "Crear cuenta", "auth?mode=signup");
@@ -97,7 +97,7 @@ test.describe.serial("Login and Signup Testing", () => {
     await expect(page.locator('li[role="alert"]')).toBeVisible();
     // Precise: expect to see the error text.
     await expect(page.locator('li[role="alert"]')).toHaveText(
-      "Por favor, ingrese una contraseña con al menos una letra mayúscula, una letra minúscula, un dígito y un carácter especial. Además, asegúrese de que la contraseña tenga al menos 7 caracteres."
+      "La contraseña debe tener al menos 7 caracteres."
     );
 
     // Expect to be redirected to "add/characteristics" page.

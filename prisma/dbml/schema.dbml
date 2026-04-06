@@ -100,7 +100,10 @@ Table Profile {
 Table Bacteria {
   id String [pk]
   bacteria String [unique, not null]
+  nombreNormalizado String [unique, not null]
+  descripcion String [not null, default: '']
   table Int [not null]
+  susceptibilidades AntimicrobianoSusceptibilidad [not null]
 }
 
 Table Resistance {
@@ -139,80 +142,33 @@ Table State {
   stateName String [unique, not null]
 }
 
-Table AntimicrobianoTabla3 {
+Table Susceptibilidad {
   id String [pk]
-  antimicrobiano String [unique, not null]
-  Enterobacterales Json [not null]
-  SalmonellaShigella Json [not null]
-  PseudomonasAeruginosa Json [not null]
-  Acinetobacter Json [not null]
-  BurkholderiaCepacia Json [not null]
-  StenotrophomonasMaltophilia Json [not null]
-  OtrosNoEnterobacterales Json [not null]
-  HaemophilusInfluenzae Json [not null]
-  NeisseriaGonorrhoeae Json [not null]
-  NaisseriaMeningitidis Json [not null]
-  Staphylococcus Json [not null]
-  Enterococcus Json [not null]
-  StreptococcusPneumoniae Json [not null]
-  StreptococcusHemolitico Json [not null]
-  StreptococcusViridans Json [not null]
+  nombre String [unique, not null]
+  color String [not null]
+  susceptibilidades AntimicrobianoSusceptibilidad [not null]
 }
 
-Table AntimicrobianoTabla4 {
+Table Antimicrobiano {
   id String [pk]
-  antimicrobiano String [unique, not null]
-  Anaerobios Json [not null]
-  Nocardia Json [not null]
-  Abiotrophia Json [not null]
-  Aerococcus Json [not null]
-  Aeromonas Json [not null]
-  Bacillus Json [not null]
-  Campylobacter Json [not null]
-  Corynebacterium Json [not null]
-  Erysipelothrix Json [not null]
-  Gemella Json [not null]
-  Aggregatibacter Json [not null]
-  Vibrio Json [not null]
-  Lactobacillus Json [not null]
-  Lactococcus Json [not null]
-  Leuconostoc Json [not null]
+  nombre String [unique, not null]
+  tables Int[] [not null]
+  descripcion String [not null, default: '']
+  susceptibilidades AntimicrobianoSusceptibilidad [not null]
 }
 
-Table AntimicrobianoTabla5 {
+Table AntimicrobianoSusceptibilidad {
   id String [pk]
-  antimicrobiano String [unique, not null]
-  Listeria Json [not null]
-  Micrococcus Json [not null]
-  Moraxella Json [not null]
-  Pasteurella Json [not null]
-  Pediococcus Json [not null]
-  Rothia Json [not null]
-  Helycobacter Json [not null]
-}
+  bacteriaId String [not null]
+  bacteria Bacteria [not null]
+  antimicrobianoId String [not null]
+  antimicrobiano Antimicrobiano [not null]
+  susceptibilidadId String [not null]
+  susceptibilidad Susceptibilidad [not null]
 
-Table AntimicrobianoTabla6 {
-  id String [pk]
-  antimicrobiano String [unique, not null]
-  CandidaAlbicans Json [not null]
-  CandidaGlabrata Json [not null]
-  CandidaGuilliermondii Json [not null]
-  CandidaKrusei Json [not null]
-  CandidaParapsilosis Json [not null]
-  CandidaTropicalis Json [not null]
-  CandidaAuris Json [not null]
-  CandidaDubliniensis Json [not null]
-  CandidaKefyr Json [not null]
-  CandidaLusitaniae Json [not null]
-  CandidaPeliculosa Json [not null]
-  CandidaDuobushaemulonii Json [not null]
-  CandidaHaemulonii Json [not null]
-  CandidaPararugosa Json [not null]
-  CandidaRugosa Json [not null]
-  CryptococcusGatti Json [not null]
-  CryptococcusDeuterogatti Json [not null]
-  CryptococcusNeoformans Json [not null]
-  AspergillusFumigatus Json [not null]
+  indexes {
+    (antimicrobianoId, bacteriaId) [unique]
+  }
 }
 
 Table Indreobj {
@@ -244,3 +200,9 @@ Ref: Contacto.clinicosId - Clinicos.id
 Ref: Otros.clinicosId - Clinicos.id
 
 Ref: Ocupacion.clinicosId - Clinicos.id
+
+Ref: AntimicrobianoSusceptibilidad.bacteriaId > Bacteria.id
+
+Ref: AntimicrobianoSusceptibilidad.antimicrobianoId > Antimicrobiano.id
+
+Ref: AntimicrobianoSusceptibilidad.susceptibilidadId > Susceptibilidad.id

@@ -14,7 +14,6 @@
 
 The developer (Ricardo) did **not** write this codebase and is **not** fluent in React or Remix. He has 12 years of programming experience (Python/Django/Vue/SQL/d3.js), so he understands general patterns, TypeScript syntax, and data logic — but has low experience with: 
 - React
-- MongoDB
 Not familiar with:
 - Remix's conventions
 - Zustand (client-side state management)
@@ -29,7 +28,7 @@ Not familiar with:
 |---|---|
 | Framework | Remix 2 (full-stack React, file-based routing) |
 | Styling | Tailwind CSS 3 + DaisyUI 4 |
-| ORM | Prisma 6 (connected to MongoDB) |
+| ORM | Prisma 6 (PostgreSQL) |
 | State (client) | Zustand 5 |
 | Charts | Recharts 2 |
 | Maps | OpenLayers 10 |
@@ -62,7 +61,10 @@ npx prisma generate  # Regenerate Prisma client after schema changes
 npx prisma studio    # Visual DB browser (opens in browser)
 
 # Database seeding (run in order or use seedall)
-npm run seedall      # Seeds all reference data into MongoDB
+npm run seedall      # Seeds all reference data into PostgreSQL
+
+# User management
+npm run createuser   # Interactive prompt to create a Profile (like Django's createsuperuser)
 ```
 
 ---
@@ -77,12 +79,12 @@ All routes under `_app.` require authentication (`requireUserSession()` in loade
 
 Multi-step form under `_app.add._new/`:
 1. `characteristics.tsx` → búsqueda por CURP
-2. `characteristics_.create.tsx` → crea registro `Clinicos` en MongoDB
+2. `characteristics_.create.tsx` → crea registro `Clinicos` en la BD
 3. `primary.tsx` → selección de condición (IRAS, ITS, IVU, EDAS)
 4. `define.tsx` / `define.iras.tsx` / etc. → síntomas secundarios
 5. `revise.tsx` → crea `Visitation` vinculada al `Clinicos`
 
-Los IDs de MongoDB generados en cada paso se guardan en los Zustand stores (`app/state/store.ts`). **Si el usuario recarga la página a mitad del flujo, los stores se vacían y el flujo se rompe** — es una limitación conocida de la arquitectura actual, no modificar sin discutir.
+Los IDs generados en cada paso se guardan en los Zustand stores (`app/state/store.ts`). **Si el usuario recarga la página a mitad del flujo, los stores se vacían y el flujo se rompe** — es una limitación conocida de la arquitectura actual, no modificar sin discutir.
 
 ---
 
@@ -100,7 +102,7 @@ Ver `docs/` para guías en español:
 
 ---
 
-## Database schema overview (Prisma/MongoDB)
+## Database schema overview (Prisma/PostgreSQL)
 
 Key models in `prisma/schema.prisma`:
 
@@ -109,11 +111,13 @@ Key models in `prisma/schema.prisma`:
 - **Profile** — Healthcare professional (user account). Unique on `email` and `cedula`.
 - **Indreobj** — InDRE resistome record. Contains embedded data about bacteria, antibiotics, resistance mechanisms, genes, and hospital.
 - **Hospital** — Reference table for Mexican health facilities (CLUES code, lat/long, tier).
-- **Bacteria / Resistance / Gene** — Reference lookup tables, seeded via `npm run seedall`.
-- **AntimicrobianoTabla3/4/5/6** — Antibiotic susceptibility structured tables. Use custom embedded type `BactStructure { present Boolean, colour String }`.
+- **Bacteria / Resistance / Gene / Antibiotic** — Reference lookup tables, seeded via `npm run seedall`.
+- **Susceptibilidad** — Catalog of susceptibility categories (PRESENTE, RESISTENTE, SENSIBLE, INTERMEDIO) with associated colors.
+- **Antimicrobiano** — Catalog of 73 unique antimicrobial agents, each with `tables Int[]` indicating which CLSI tables it appears in.
+- **AntimicrobianoSusceptibilidad** — Junction table linking Antimicrobiano + Bacteria + Susceptibilidad. Unique on `[antimicrobianoId, bacteriaId]`.
 - **StateGeoJson** — Mexican state boundaries as GeoJSON, used by OpenLayers maps.
 
-MongoDB uses **ObjectId** as primary key (`@id @map("_id") @db.ObjectId`). Relations are declared with `@relation` but MongoDB does NOT enforce foreign key constraints — Prisma manages this in application code.
+PostgreSQL with `cuid()` primary keys. Foreign key constraints are enforced at the database level.
 
 ---
 
@@ -128,7 +132,7 @@ MongoDB uses **ObjectId** as primary key (`@id @map("_id") @db.ObjectId`). Relat
 Required in `.env` (see `.env-structure` for template):
 
 ```
-DATABASE_URL="mongodb+srv://..."   # MongoDB Atlas connection string
+DATABASE_URL="postgresql://..."    # PostgreSQL connection string
 SESSION_SECRET="..."               # Random string for cookie signing
 ```
 

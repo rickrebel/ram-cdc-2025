@@ -40,7 +40,7 @@ async function populateGeoJson() {
       }
 
       try {
-        // Insert or update the record in MongoDB
+        // Insert or update the record in the database
         await prisma.stateGeoJson.upsert({
           where: { stateName },
           update: { geoJson },

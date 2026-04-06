@@ -68,18 +68,7 @@ export function isValidNombre(value: string, min: number = 0): boolean {
 }
 
 export function isValidPassword(value: string): boolean {
-  return Boolean(
-    // The password must contain at least one uppercase letter ([A-Z]).
-    /[A-Z]/.test(value) &&
-      // The password must contain at least one lowercase letter ([a-z]).
-      /[a-z]/.test(value) &&
-      // The password must contain at least one digit ([0-9]).
-      /[0-9]/.test(value) &&
-      // The password must contain at least one special character.
-      /[^A-Za-z0-9]/.test(value) &&
-      // The password must be at least 7 characters long.
-      value.length > 6
-  );
+  return Boolean(value && value.length >= 7);
 }
 
 export function isValidCedulaProf(value: string): boolean {
@@ -132,7 +121,7 @@ export function validateLoginInput(input: LoginCredentials): void {
 
   if (!isValidPassword(input.password)) {
     validationErrors.password =
-      "Por favor, ingrese una contraseña con al menos una letra mayúscula, una letra minúscula, un dígito y un carácter especial. Además, asegúrese de que la contraseña tenga al menos 7 caracteres.";
+      "La contraseña debe tener al menos 7 caracteres.";
   }
 
   if (Object.keys(validationErrors).length > 0) {
@@ -163,7 +152,7 @@ export function validateSignUpInput(input: SignupCredentials): void {
 
   if (!isValidCedulaProf(input.license)) {
     validationErrors.license =
-      "Por favor ingrese un válido Cédula profesional.";
+      "Por favor ingrese una Cédula profesional válida.";
   }
 
   if (!isUniqueCedulaProf(input.license)) {
@@ -183,7 +172,7 @@ export function validateSignUpInput(input: SignupCredentials): void {
 
   if (!isValidPassword(input.password)) {
     validationErrors.password =
-      "Por favor, ingrese una contraseña con al menos una letra mayúscula, una letra minúscula, un dígito y un carácter especial. Además, asegúrese de que la contraseña tenga al menos 7 caracteres.";
+      "La contraseña debe tener al menos 7 caracteres.";
   }
 
   if (Object.keys(validationErrors).length > 0) {

@@ -152,10 +152,11 @@ describe("action Function catch block error handling", () => {
   it("should handle login action", async () => {
     const request = new Request("http://localhost/auth?mode=login", {
       method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         email: "test@example.com",
         password: "password",
-      }),
+      }).toString(),
     });
     const args = { request } as ActionFunctionArgs;
     const response = await action(args);
@@ -165,9 +166,10 @@ describe("action Function catch block error handling", () => {
   it("should handle forgot-password action", async () => {
     const request = new Request("http://localhost/auth?mode=forgot-password", {
       method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         email: "test@example.com",
-      }),
+      }).toString(),
     });
     const args = { request } as ActionFunctionArgs;
     const response = await action(args);

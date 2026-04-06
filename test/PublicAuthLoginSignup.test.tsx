@@ -29,6 +29,7 @@ describe("Auth Action Function", () => {
 
       const request = new Request("http://localhost/auth?mode=signup", {
         method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           nombre: "John",
           apellidoPaterno: "Doe",
@@ -36,7 +37,7 @@ describe("Auth Action Function", () => {
           whichEstado: "CDMX",
           email: "test@example.com",
           password: "Password$123",
-        }),
+        }).toString(),
       });
 
       const args = { request } as ActionFunctionArgs;
@@ -66,10 +67,11 @@ describe("Auth Action Function", () => {
 
       const request = new Request("http://localhost/auth?mode=login", {
         method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           email: "invalid-email",
           password: "Password$123",
-        }),
+        }).toString(),
       });
 
       const args = { request } as ActionFunctionArgs;

@@ -152,9 +152,12 @@ model Profile {
 // ------------------------------------------------------------------------------------------
 
 model Bacteria {
-  id       String @id @default(cuid())
-  bacteria String @unique
-  table    Int
+  id                 String @id @default(cuid())
+  bacteria           String @unique
+  nombreNormalizado   String @unique
+  descripcion        String @default("")
+  table              Int
+  susceptibilidades  AntimicrobianoSusceptibilidad[]
 }
 
 model Resistance {
@@ -194,90 +197,36 @@ model State {
 }
 
 // ------------------------------------------------------------------------------------------
-// ANTIMICROBIANO LOOKUP TABLES
-// Each row is one antimicrobial agent. Each bacteria column stores a Json object
-// with shape { present: boolean, colour: string }, previously the BactStructure
-// embedded type (not supported in PostgreSQL).
+// ANTIMICROBIANO NORMALIZED TABLES
+// Replaces the 4 wide AntimicrobianoTabla3/4/5/6 models with a relational design:
+// 3 catalogs (Susceptibilidad, Antimicrobiano, Bacteria) + 1 junction table.
 // ------------------------------------------------------------------------------------------
 
-model AntimicrobianoTabla3 {
-  id String @id @default(cuid())
-
-  antimicrobiano              String @unique
-  Enterobacterales            Json
-  SalmonellaShigella          Json
-  PseudomonasAeruginosa       Json
-  Acinetobacter               Json
-  BurkholderiaCepacia         Json
-  StenotrophomonasMaltophilia Json
-  OtrosNoEnterobacterales     Json
-  HaemophilusInfluenzae       Json
-  NeisseriaGonorrhoeae        Json
-  NaisseriaMeningitidis       Json
-  Staphylococcus              Json
-  Enterococcus                Json
-  StreptococcusPneumoniae     Json
-  StreptococcusHemolitico     Json
-  StreptococcusViridans       Json
+model Susceptibilidad {
+  id                String @id @default(cuid())
+  nombre            String @unique
+  color             String
+  susceptibilidades AntimicrobianoSusceptibilidad[]
 }
 
-model AntimicrobianoTabla4 {
-  id String @id @default(cuid())
-
-  antimicrobiano  String @unique
-  Anaerobios      Json
-  Nocardia        Json
-  Abiotrophia     Json
-  Aerococcus      Json
-  Aeromonas       Json
-  Bacillus        Json
-  Campylobacter   Json
-  Corynebacterium Json
-  Erysipelothrix  Json
-  Gemella         Json
-  Aggregatibacter Json
-  Vibrio          Json
-  Lactobacillus   Json
-  Lactococcus     Json
-  Leuconostoc     Json
+model Antimicrobiano {
+  id                String @id @default(cuid())
+  nombre            String @unique
+  tables            Int[]
+  descripcion       String @default("")
+  susceptibilidades AntimicrobianoSusceptibilidad[]
 }
 
-model AntimicrobianoTabla5 {
-  id String @id @default(cuid())
+model AntimicrobianoSusceptibilidad {
+  id                String          @id @default(cuid())
+  bacteriaId        String
+  bacteria          Bacteria        @relation(fields: [bacteriaId], references: [id])
+  antimicrobianoId  String
+  antimicrobiano    Antimicrobiano  @relation(fields: [antimicrobianoId], references: [id])
+  susceptibilidadId String
+  susceptibilidad   Susceptibilidad @relation(fields: [susceptibilidadId], references: [id])
 
-  antimicrobiano String @unique
-  Listeria       Json
-  Micrococcus    Json
-  Moraxella      Json
-  Pasteurella    Json
-  Pediococcus    Json
-  Rothia         Json
-  Helycobacter   Json
-}
-
-model AntimicrobianoTabla6 {
-  id String @id @default(cuid())
-
-  antimicrobiano           String @unique
-  CandidaAlbicans          Json
-  CandidaGlabrata          Json
-  CandidaGuilliermondii    Json
-  CandidaKrusei            Json
-  CandidaParapsilosis      Json
-  CandidaTropicalis        Json
-  CandidaAuris             Json
-  CandidaDubliniensis      Json
-  CandidaKefyr             Json
-  CandidaLusitaniae        Json
-  CandidaPeliculosa        Json
-  CandidaDuobushaemulonii  Json
-  CandidaHaemulonii        Json
-  CandidaPararugosa        Json
-  CandidaRugosa            Json
-  CryptococcusGatti        Json
-  CryptococcusDeuterogatti Json
-  CryptococcusNeoformans   Json
-  AspergillusFumigatus     Json
+  @@unique([antimicrobianoId, bacteriaId])
 }
 
 // ------------------------------------------------------------------------------------------

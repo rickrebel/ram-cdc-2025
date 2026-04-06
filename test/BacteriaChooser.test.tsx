@@ -6,9 +6,9 @@ import BacteriaSearch from "~/components/inDRE/BacteriaChooser";
 import { Bacteria } from "@prisma/client";
 
 const mockBacteriaList: Bacteria[] = [
-  { id: "1", bacteria: "Escherichia coli", table: 1 },
-  { id: "2", bacteria: "Staphylococcus aureus", table: 2 },
-  { id: "3", bacteria: "Pseudomonas aeruginosa", table: 3 },
+  { id: "1", bacteria: "Escherichia coli", nombreNormalizado: "EscherichiaColi", descripcion: "", table: 1 },
+  { id: "2", bacteria: "Staphylococcus aureus", nombreNormalizado: "StaphylococcusAureus", descripcion: "", table: 2 },
+  { id: "3", bacteria: "Pseudomonas aeruginosa", nombreNormalizado: "PseudomonasAeruginosa", descripcion: "", table: 3 },
 ];
 
 describe("BacteriaSearch Component", () => {

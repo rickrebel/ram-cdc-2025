@@ -1,10 +1,6 @@
 import { prisma } from "~/server/database.server";
 import { State } from "~/utilities/types";
 import {
-  AntimicrobianoTabla3,
-  AntimicrobianoTabla4,
-  AntimicrobianoTabla5,
-  AntimicrobianoTabla6,
   Clinicos,
   Contacto,
   Otros,
@@ -183,60 +179,27 @@ export async function getSecondaryConditions(
   return secondaryConditions;
 }
 
-export async function getAllAntimicrobianosT3(): Promise<
-  AntimicrobianoTabla3[]
-> {
-  // Fetch all records from the database.
-  const allAntiMicrobianosT3: AntimicrobianoTabla3[] =
-    await prisma.antimicrobianoTabla3.findMany();
+export async function getSusceptibilidadesByBacteria(
+  bacteriaId: string
+) {
+  const results =
+    await prisma.antimicrobianoSusceptibilidad.findMany({
+      where: { bacteriaId },
+      include: {
+        antimicrobiano: { select: { nombre: true } },
+        susceptibilidad: {
+          select: { nombre: true, color: true },
+        },
+      },
+    });
 
-  if (!allAntiMicrobianosT3.length) {
-    throw new Error("No se encontró ninguna lista de antibióticos (T3).");
+  if (!results.length) {
+    throw new Error(
+      "No se encontraron antimicrobianos para esta bacteria."
+    );
   }
 
-  return allAntiMicrobianosT3;
-}
-
-export async function getAllAntimicrobianosT4(): Promise<
-  AntimicrobianoTabla4[]
-> {
-  // Fetch all records from the database.
-  const allAntiMicrobianosT4: AntimicrobianoTabla4[] =
-    await prisma.antimicrobianoTabla4.findMany();
-
-  if (!allAntiMicrobianosT4.length) {
-    throw new Error("No se encontró ninguna lista de antibióticos (T4).");
-  }
-
-  return allAntiMicrobianosT4;
-}
-
-export async function getAllAntimicrobianosT5(): Promise<
-  AntimicrobianoTabla5[]
-> {
-  // Fetch all records from the database.
-  const allAntiMicrobianosT5: AntimicrobianoTabla5[] =
-    await prisma.antimicrobianoTabla5.findMany();
-
-  if (!allAntiMicrobianosT5) {
-    throw new Error("No se encontró ninguna lista de antibióticos (T5).");
-  }
-
-  return allAntiMicrobianosT5;
-}
-
-export async function getAllAntimicrobianosT6(): Promise<
-  AntimicrobianoTabla6[]
-> {
-  // Fetch all records from the database (table 'AntimicrobianoTabla6').
-  const allAntiMicrobianosT6: AntimicrobianoTabla6[] =
-    await prisma.antimicrobianoTabla6.findMany();
-
-  if (!allAntiMicrobianosT6) {
-    throw new Error("No se encontró ninguna lista de antibióticos (T6).");
-  }
-
-  return allAntiMicrobianosT6;
+  return results;
 }
 
 export async function getAllResistanceMechanisms(): Promise<Resistance[]> {
