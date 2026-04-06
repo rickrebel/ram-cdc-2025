@@ -68,8 +68,11 @@ export async function addInDRE(
   // Process dynamic keys
   const dynamicData: Record<string, string> = {};
   for (const key in dynamicKeys) {
-    if (Object.prototype.hasOwnProperty.call(dynamicKeys, key)) {
-      dynamicData[key] = dynamicKeys[key];
+    if (
+      Object.prototype.hasOwnProperty.call(dynamicKeys, key) &&
+      dynamicKeys[key] !== null
+    ) {
+      dynamicData[key] = dynamicKeys[key] as string;
     }
   }
 
@@ -164,26 +167,23 @@ export async function addGene(data: string[]) {
   }
 }
 
-export async function addHospital(
-  data: string[],
-  hospitalNames: string[],
-  clues: string[]
-) {
-  // Loop over the items in the 'data' array and create a new 'Hospital' object for each item.
-  data.forEach(async (item, index) => {
-    // Check if the 'item' already exists in the database.
-    const hospital = await prisma.hospital.findFirst({
-      where: {
-        hospitalName: hospitalNames[index],
-      },
-    });
-    if (hospital) return;
-
-    await prisma.hospital.create({
-      data: {
-        hospitalName: hospitalNames[index],
-        clues: clues[index],
-      },
-    });
-  });
-}
+// addHospital comentada — los hospitales se gestionan exclusivamente mediante
+// el catálogo oficial (seed). No se permite crear hospitales desde la UI.
+// export async function addHospital(
+//   data: string[],
+//   hospitalNames: string[],
+//   clues: string[]
+// ) {
+//   data.forEach(async (item, index) => {
+//     const hospital = await prisma.hospital.findFirst({
+//       where: { hospitalName: hospitalNames[index] },
+//     });
+//     if (hospital) return;
+//     await prisma.hospital.create({
+//       data: {
+//         hospitalName: hospitalNames[index],
+//         clues: clues[index],
+//       },
+//     });
+//   });
+// }

@@ -60,7 +60,7 @@ export async function isUniqueCURP(curp: string): Promise<boolean> {
     where: { curp },
   });
 
-  return existingClinicos ? false : true;
+  return !existingClinicos;
 }
 
 export function isValidNombre(value: string, min: number = 0): boolean {

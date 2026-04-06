@@ -8,7 +8,7 @@
 // 15 keys for bacterias in Tabla4.json.
 // 7 keys for bacterias in Tabla5.json.
 // 19 keys for bacterias in Tabla6.json.
-const replacer: Record<string, string> = {
+const replacer = {
   "Abiotrophia spp y Granulicatella spp": "Abiotrophia", // Prisma schema: AntimicrobianoTabla4.
   "Acinetobacter spp": "Acinetobacter", // Prisma schema: AntimicrobianoTabla3.
   "Aerococcus spp": "Aerococcus", // Prisma schema: AntimicrobianoTabla4.
@@ -71,7 +71,7 @@ const replacer: Record<string, string> = {
   "Vibrio spp": "Vibrio", // Prisma schema: AntimicrobianoTabla4.
 };
 
-function getReplacement(key: keyof typeof replacer): string | null {
+function getReplacement(key) {
   return replacer[key] || null;
 }
 

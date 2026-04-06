@@ -5,7 +5,14 @@ import {
   redirect,
 } from "@remix-run/node";
 import { isUniqueCURP, isValidCURP } from "~/server/validation.server";
-import { getPatientByCurp, getPatientsByCurp } from "~/server/getters.server";
+import {
+  getPatientByCurp,
+  getPatientsByCurp,
+  getCurrentVisitationIdForClinicos,
+  getContactoByClinicos,
+  getOtrosByClinicos,
+  getOcupacionByClinicos,
+} from "~/server/getters.server";
 import { requireUserSession } from "~/server/auth.server";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { Clinicos } from "@prisma/client";
@@ -30,16 +37,25 @@ export async function action({ request }: ActionFunctionArgs) {
   const clinicos: Clinicos | null = await getPatientByCurp(curp);
 
   if (clinicos) {
+    // TODO: Revisar si hacer tantos promises vale la pena, parece 
+    // poco eficiente o poco práctico. No es mejor traer all desde el principio?
+    // Revisar porque hay otros lugares donde también se usan.
+    const [visitationId, contacto, otros, ocupacion] = await Promise.all([
+      getCurrentVisitationIdForClinicos(clinicos.id).catch(() => null),
+      getContactoByClinicos(clinicos.id),
+      getOtrosByClinicos(clinicos.id),
+      getOcupacionByClinicos(clinicos.id),
+    ]);
+
     const toReturn = {
       curp: clinicos.curp,
       dob: clinicos.dob,
       sexonacer: clinicos.sexonacer,
       dateAdded: clinicos.dateAdded,
-      contactoId: clinicos.contactoId,
-      otrosId: clinicos.otrosId,
-      ocupacionId: clinicos.ocupacionId,
-      // Get the last visitationId from the visitationIds array.
-      visitationId: clinicos.visitationIds[clinicos.visitationIds.length - 1],
+      contactoId: contacto?.id ?? null,
+      otrosId: otros?.id ?? null,
+      ocupacionId: ocupacion?.id ?? null,
+      visitationId: visitationId ?? null,
       id: clinicos.id,
     };
 

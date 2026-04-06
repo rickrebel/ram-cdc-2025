@@ -1,9 +1,9 @@
 import { PrismaClient } from "@prisma/client";
-import list_tabla3_of_antimicrobianos from "../data/Tabla3.json" assert { type: "json" };
-import list_tabla4_of_antimicrobianos from "../data/Tabla4.json" assert { type: "json" };
-import list_tabla5_of_antimicrobianos from "../data/Tabla5.json" assert { type: "json" };
-import list_tabla6_of_antimicrobianos from "../data/Tabla6.json" assert { type: "json" };
-import { replacer } from "../utils/replacer.js";
+import list_tabla3_of_antimicrobianos from "../data/Tabla3.json" with { type: "json" };
+import list_tabla4_of_antimicrobianos from "../data/Tabla4.json" with { type: "json" };
+import list_tabla5_of_antimicrobianos from "../data/Tabla5.json" with { type: "json" };
+import list_tabla6_of_antimicrobianos from "../data/Tabla6.json" with { type: "json" };
+import { replacer } from "../app/utilities/bacteriaReplacer.js";
 import dotenv from "dotenv";
 
 // 'dotenv' here is used to load environment variables from a .env file so that they

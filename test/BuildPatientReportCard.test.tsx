@@ -15,10 +15,6 @@ import {
 describe("buildPatientReportCard", () => {
   const mockClinicos: typeClinicosStringified = {
     id: "123",
-    contactoId: "456",
-    otrosId: "789",
-    ocupacionId: "101",
-    visitationIds: ["201", "202"],
     curp: "AAAA000000AAAAAA00",
     dob: "2000-01-01T00:00:00.000Z",
     sexonacer: enumSexonacer.Hombre,

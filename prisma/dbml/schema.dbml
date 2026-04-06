@@ -5,12 +5,8 @@
 Table Clinicos {
   id String [pk]
   contacto Contacto
-  contactoId String
   otros Otros
-  otrosId String
   ocupacion Ocupacion
-  ocupacionId String
-  visitationIds String[] [not null]
   visitations Visitation [not null]
   location String
   curp String [unique, not null]
@@ -95,7 +91,7 @@ Table Profile {
   apellidoMaterno String
   cedulaProfesional String [unique, not null]
   institution String [not null]
-  correoElectronico String [not null]
+  correoElectronico String [unique, not null]
   password String [not null]
   dateAdded DateTime [default: `now()`, not null]
   locations String[] [not null]
@@ -110,6 +106,16 @@ Table Bacteria {
 Table Resistance {
   id String [pk]
   resistanceMechanism String [unique, not null]
+}
+
+Table Gene {
+  id String [pk]
+  geneName String [unique, not null]
+}
+
+Table Antibiotic {
+  id String [pk]
+  antibioticName String [unique, not null]
 }
 
 Table Hospital {
@@ -128,85 +134,85 @@ Table Hospital {
   longitude Float
 }
 
+Table State {
+  id String [pk]
+  stateName String [unique, not null]
+}
+
 Table AntimicrobianoTabla3 {
   id String [pk]
   antimicrobiano String [unique, not null]
-  Enterobacterales BactStructure [not null]
-  SalmonellaShigella BactStructure [not null]
-  PseudomonasAeruginosa BactStructure [not null]
-  Acinetobacter BactStructure [not null]
-  BurkholderiaCepacia BactStructure [not null]
-  StenotrophomonasMaltophilia BactStructure [not null]
-  OtrosNoEnterobacterales BactStructure [not null]
-  HaemophilusInfluenzae BactStructure [not null]
-  NeisseriaGonorrhoeae BactStructure [not null]
-  NaisseriaMeningitidis BactStructure [not null]
-  Staphylococcus BactStructure [not null]
-  Enterococcus BactStructure [not null]
-  StreptococcusPneumoniae BactStructure [not null]
-  StreptococcusHemolitico BactStructure [not null]
-  StreptococcusViridans BactStructure [not null]
+  Enterobacterales Json [not null]
+  SalmonellaShigella Json [not null]
+  PseudomonasAeruginosa Json [not null]
+  Acinetobacter Json [not null]
+  BurkholderiaCepacia Json [not null]
+  StenotrophomonasMaltophilia Json [not null]
+  OtrosNoEnterobacterales Json [not null]
+  HaemophilusInfluenzae Json [not null]
+  NeisseriaGonorrhoeae Json [not null]
+  NaisseriaMeningitidis Json [not null]
+  Staphylococcus Json [not null]
+  Enterococcus Json [not null]
+  StreptococcusPneumoniae Json [not null]
+  StreptococcusHemolitico Json [not null]
+  StreptococcusViridans Json [not null]
 }
 
 Table AntimicrobianoTabla4 {
   id String [pk]
   antimicrobiano String [unique, not null]
-  Anaerobios BactStructure [not null]
-  Nocardia BactStructure [not null]
-  Abiotrophia BactStructure [not null]
-  Aerococcus BactStructure [not null]
-  Aeromonas BactStructure [not null]
-  Bacillus BactStructure [not null]
-  Campylobacter BactStructure [not null]
-  Corynebacterium BactStructure [not null]
-  Erysipelothrix BactStructure [not null]
-  Gemella BactStructure [not null]
-  Aggregatibacter BactStructure [not null]
-  Vibrio BactStructure [not null]
-  Lactobacillus BactStructure [not null]
-  Lactococcus BactStructure [not null]
-  Leuconostoc BactStructure [not null]
+  Anaerobios Json [not null]
+  Nocardia Json [not null]
+  Abiotrophia Json [not null]
+  Aerococcus Json [not null]
+  Aeromonas Json [not null]
+  Bacillus Json [not null]
+  Campylobacter Json [not null]
+  Corynebacterium Json [not null]
+  Erysipelothrix Json [not null]
+  Gemella Json [not null]
+  Aggregatibacter Json [not null]
+  Vibrio Json [not null]
+  Lactobacillus Json [not null]
+  Lactococcus Json [not null]
+  Leuconostoc Json [not null]
 }
 
 Table AntimicrobianoTabla5 {
   id String [pk]
   antimicrobiano String [unique, not null]
-  Listeria BactStructure [not null]
-  Micrococcus BactStructure [not null]
-  Moraxella BactStructure [not null]
-  Pasteurella BactStructure [not null]
-  Pediococcus BactStructure [not null]
-  Rothia BactStructure [not null]
-  Helycobacter BactStructure [not null]
+  Listeria Json [not null]
+  Micrococcus Json [not null]
+  Moraxella Json [not null]
+  Pasteurella Json [not null]
+  Pediococcus Json [not null]
+  Rothia Json [not null]
+  Helycobacter Json [not null]
 }
 
 Table AntimicrobianoTabla6 {
   id String [pk]
   antimicrobiano String [unique, not null]
-  CandidaAlbicans BactStructure [not null]
-  CandidaGlabrata BactStructure [not null]
-  CandidaGuilliermondii BactStructure [not null]
-  CandidaKrusei BactStructure [not null]
-  CandidaParapsilosis BactStructure [not null]
-  CandidaTropicalis BactStructure [not null]
-  CandidaAuris BactStructure [not null]
-  CandidaDubliniensis BactStructure [not null]
-  CandidaKefyr BactStructure [not null]
-  CandidaLusitaniae BactStructure [not null]
-  CandidaPeliculosa BactStructure [not null]
-  CandidaDuobushaemulonii BactStructure [not null]
-  CandidaHaemulonii BactStructure [not null]
-  CandidaPararugosa BactStructure [not null]
-  CandidaRugosa BactStructure [not null]
-  CryptococcusGatti BactStructure [not null]
-  CryptococcusDeuterogatti BactStructure [not null]
-  CryptococcusNeoformans BactStructure [not null]
-  AspergillusFumigatus BactStructure [not null]
-}
-
-Table Gene {
-  id String [pk]
-  geneName String [unique, not null]
+  CandidaAlbicans Json [not null]
+  CandidaGlabrata Json [not null]
+  CandidaGuilliermondii Json [not null]
+  CandidaKrusei Json [not null]
+  CandidaParapsilosis Json [not null]
+  CandidaTropicalis Json [not null]
+  CandidaAuris Json [not null]
+  CandidaDubliniensis Json [not null]
+  CandidaKefyr Json [not null]
+  CandidaLusitaniae Json [not null]
+  CandidaPeliculosa Json [not null]
+  CandidaDuobushaemulonii Json [not null]
+  CandidaHaemulonii Json [not null]
+  CandidaPararugosa Json [not null]
+  CandidaRugosa Json [not null]
+  CryptococcusGatti Json [not null]
+  CryptococcusDeuterogatti Json [not null]
+  CryptococcusNeoformans Json [not null]
+  AspergillusFumigatus Json [not null]
 }
 
 Table Indreobj {
@@ -221,11 +227,6 @@ Table Indreobj {
   hospitalId String [not null]
   dynamicData Json [not null]
   dateAdded DateTime [default: `now()`, not null]
-}
-
-Table State {
-  id String [pk]
-  stateName String [unique, not null]
 }
 
 Table StateGeoJson {

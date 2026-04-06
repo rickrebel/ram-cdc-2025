@@ -26,9 +26,9 @@ import { validateDatosClinicos } from "~/server/validation.server";
 import {
   getProfile,
   getPatientByCurp,
-  getContacto,
-  getOtros,
-  getOcupacion,
+  getContactoByClinicos,
+  getOtrosByClinicos,
+  getOcupacionByClinicos,
 } from "~/server/getters.server";
 import {
   ClinicalDataType,
@@ -269,14 +269,12 @@ export async function loader({
 
   if (curp) {
     clinicos = await getPatientByCurp(curp);
-    if (clinicos?.contactoId) {
-      contacto = await getContacto(clinicos.contactoId);
-    }
-    if (clinicos?.otrosId) {
-      otros = await getOtros(clinicos.otrosId);
-    }
-    if (clinicos?.ocupacionId) {
-      ocupacion = await getOcupacion(clinicos.ocupacionId);
+    if (clinicos) {
+      [contacto, otros, ocupacion] = await Promise.all([
+        getContactoByClinicos(clinicos.id),
+        getOtrosByClinicos(clinicos.id),
+        getOcupacionByClinicos(clinicos.id),
+      ]);
     }
 
     if (clinicos) {

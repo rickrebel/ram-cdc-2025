@@ -11,7 +11,7 @@ import {
   getAllAntimicrobianosT6,
   getBacteriaByName,
 } from "~/server/getters.server";
-import { getReplacement } from "~/utilities/bacteriaReplacer";
+import { getReplacement } from "~/utilities/bacteriaReplacer.js";
 import {
   AntimicrobianoTabla3,
   AntimicrobianoTabla4,

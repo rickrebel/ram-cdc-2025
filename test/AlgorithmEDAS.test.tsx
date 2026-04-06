@@ -52,10 +52,6 @@ describe("AlgorithmEDAS Component", () => {
     const mockLoaderData: typePropsAlgos["loaderData"] = {
       clinicos: {
         id: "123",
-        contactoId: "null",
-        otrosId: "null",
-        ocupacionId: "null",
-        visitationIds: ["321"],
         location: "null",
         curp: "AAAA000000AAAAAA00",
         dob: "1990-03-02T00:00:00.000Z",
@@ -437,10 +433,6 @@ describe("AlgorithmEDAS Component", () => {
     const mockLoaderData: typePropsAlgos["loaderData"] = {
       clinicos: {
         id: "123",
-        contactoId: "null",
-        otrosId: "null",
-        ocupacionId: "null",
-        visitationIds: ["321"],
         location: "null",
         curp: "AAAA000000AAAAAA00",
         dob: "1990-03-02T00:00:00.000Z",

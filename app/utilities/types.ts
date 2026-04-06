@@ -18,7 +18,7 @@ export type ClinicalDataType = {
 
   location: string;
 
-  visitationIds: string[];
+  visitationIds?: string[];
 
   // Entirely absent if the patient doesn't have the condition - otherwise, it will be the string "on".
   diabetes?: string;
@@ -141,13 +141,6 @@ export interface typeClinicosStringified {
   // JSON stringified version of the 'Clinicos' object; null, string, boolean, and number types only.
 
   id: string;
-
-  // These three can be "null".
-  contactoId: string;
-  otrosId: string;
-  ocupacionId: string;
-
-  visitationIds: string[];
 
   curp: string; // 4 capital letters followed by 6 numbers, then 6 capital letters, and finally 2 numbers.
   dob: string; // For example "2025-01-01T00:00:00.000Z".

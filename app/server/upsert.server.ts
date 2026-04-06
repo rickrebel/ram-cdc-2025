@@ -5,7 +5,6 @@ import {
   shouldInvolveOcupacion,
 } from "~/server/utilities.server";
 import { ClinicalDataType } from "~/utilities/types";
-import { getAllVisitationIdsForClinicos } from "~/server/getters.server";
 import { Clinicos, Contacto, Otros, Ocupacion } from "@prisma/client";
 
 export async function upsertClinicos(
@@ -13,59 +12,22 @@ export async function upsertClinicos(
 ): Promise<Clinicos> {
   const clinicosID = clinicalData.clinicosID;
 
+  const clinicosData = {
+    dob: new Date(clinicalData.dob),
+    sexonacer: clinicalData.sexonacer,
+    curp: clinicalData.curp,
+    indigenous: clinicalData.indigenous === "Sí",
+    afrodescendant: clinicalData.afrodescendant === "Sí",
+  };
+
   if (!clinicosID) {
-    // No existing ID provided; create a new record directly.
-    return await prisma.clinicos.create({
-      data: {
-        dob: new Date(clinicalData.dob),
-        sexonacer: clinicalData.sexonacer,
-        curp: clinicalData.curp,
-        indigenous: clinicalData.indigenous === "Sí",
-        afrodescendant: clinicalData.afrodescendant === "Sí",
-        contactoId: clinicalData.contactoID || undefined,
-        otrosId: clinicalData.otrosID || undefined,
-        ocupacionId: clinicalData.ocupacionID || undefined,
-        visitationIds: clinicalData.latestVisitationID // Will be undefined here.
-          ? [clinicalData.latestVisitationID]
-          : [],
-      },
-    });
+    return await prisma.clinicos.create({ data: clinicosData });
   }
 
-  // Establish whether this "clinicos" record has any visitation IDs.
-  const existingVisitationIds: { visitationIds: string[] } | null =
-    await getAllVisitationIdsForClinicos(clinicosID);
-  const visitationIds = existingVisitationIds?.visitationIds || [];
-
-  // Use upsert if an ID is provided
   return await prisma.clinicos.upsert({
     where: { id: clinicosID },
-    create: {
-      dob: new Date(clinicalData.dob),
-      sexonacer: clinicalData.sexonacer,
-      curp: clinicalData.curp,
-      indigenous: clinicalData.indigenous === "Sí",
-      afrodescendant: clinicalData.afrodescendant === "Sí",
-      contactoId: clinicalData.contactoID || undefined,
-      otrosId: clinicalData.otrosID || undefined,
-      ocupacionId: clinicalData.ocupacionID || undefined,
-      visitationIds: clinicalData.latestVisitationID
-        ? [...visitationIds, clinicalData.latestVisitationID]
-        : [...visitationIds],
-    },
-    update: {
-      dob: new Date(clinicalData.dob),
-      sexonacer: clinicalData.sexonacer,
-      curp: clinicalData.curp,
-      indigenous: clinicalData.indigenous === "Sí",
-      afrodescendant: clinicalData.afrodescendant === "Sí",
-      contactoId: clinicalData.contactoID || undefined,
-      otrosId: clinicalData.otrosID || undefined,
-      ocupacionId: clinicalData.ocupacionID || undefined,
-      visitationIds: clinicalData.latestVisitationID
-        ? [...visitationIds, clinicalData.latestVisitationID]
-        : [...visitationIds],
-    },
+    create: clinicosData,
+    update: clinicosData,
   });
 }
 

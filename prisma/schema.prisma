@@ -1,70 +1,38 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Generators specifiy what clients should be generated based on the data model (e.g. Prisma Client).
-// See https://www.prisma.io/docs/concepts/components/prisma-schema/generators for more information.
 generator client {
   provider = "prisma-client-js"
 }
 
-// I added this community generator "prisma-dbml-generator" (see https://notiz.dev/blog/prisma-dbml-generator) to
-// generate a DBML file whenever "npx prisma generate" is run. Copy the "schema.dbml" content into
-// https://dbdiagram.io/d to visualize the database schema as an entity-relationship diagram.
 generator dbml {
   provider = "prisma-dbml-generator"
 }
 
-// Data sources specify the details of the data sources Prisma should connect to (e.g. a PostgreSQL database).
-// See https://www.prisma.io/docs/concepts/components/prisma-schema/data-sources for more information.
 datasource db {
-  provider = "mongodb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 // ------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------
-// The data model definition is below: Specify your application models (the shape of the data per data source) and their relations.
-// API reference: https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference
-// Models: https://www.prisma.io/docs/concepts/components/prisma-schema/data-model#defining-models
-// Relations: https://www.prisma.io/docs/concepts/components/prisma-schema/relations
-// ------------------------------------------------------------------------------------------
+// CLINICAL DATA MODELS
 // ------------------------------------------------------------------------------------------
 
-// Datos Clinicos - all elements on the frontend are required.
 // Static details about the patient.
 model Clinicos {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  // Relationships
-  // A 'Clinicos' can have zero or one 'Contacto'.
-  contacto   Contacto?
-  contactoId String?
+  // One-to-one relations: FK lives on the child side (Contacto, Otros, Ocupacion).
+  // Prisma resolves these via the child's clinicosId field.
+  contacto  Contacto?
+  otros     Otros?
+  ocupacion Ocupacion?
 
-  // A 'Clinicos' can have zero or one 'Otros'.
-  otros   Otros?
-  otrosId String?
-
-  // A 'Clinicos' can have zero or one 'Ocupacion'.
-  ocupacion   Ocupacion?
-  ocupacionId String?
-
-  // A 'Clinicos' can have many 'Visitation' records associated with it.
-  // Store only visitation IDs (not full objects) for optimized lookups.
-  visitationIds String[] @db.ObjectId
-
-  // Explicit relation to `Visitation` (for Prisma consistency)
+  // One-to-many: a patient can have multiple visits.
   visitations Visitation[]
 
-  // Home state - I haven't implemented it yet, but presumably this can be updated if
-  // the patient provides an address to the Contacto object.
   location String?
 
-  // Basic scalar fields.
-  // The user form makes all of these mandatory. So null values are not needed.
   curp           String   @unique
   dob            DateTime
   sexonacer      String
@@ -73,23 +41,18 @@ model Clinicos {
   dateAdded      DateTime @default(now())
 }
 
-// Visits to the primary care physician.
+// Each clinical visit linked to a patient.
 model Visitation {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  // "curp" is a unique identifier for each patient but wont be unique in terms of visits.
+  // CURP is stored for quick lookup without joining Clinicos.
   curp String
-
-  // The date of the visit.
   date DateTime @default(now())
 
-  // A 'Visitation' object is optional, but must always be connected to one 'Clinicos'.
-  // You must assign a 'Clinicos' object when you create a 'Visitation' object.
   clinicos   Clinicos @relation(fields: [clinicosId], references: [id])
-  clinicosId String   @db.ObjectId // relation scalar field (used in the `@relation` attribute above)
+  clinicosId String
 
-  // Patient details that are changeable from one visit to the next.
+  // Patient details that may change visit to visit.
   genero             String
   peso               Float
   talla              Float
@@ -107,32 +70,20 @@ model Visitation {
   evacuationCount Int @default(0)
   vomitCount      Int @default(0)
 
-  // Additional visitation details.
   location  String
   diagnosis String?
-
-  // Miscellaneous fields.
-  notes String?
+  notes     String?
 }
 
-// Información del contacto (frontend optional).
+// Optional contact information for a patient.
 model Contacto {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  // A 'Contacto' object is optional, but must always be connected to one 'Clinicos'.
   clinicos   Clinicos @relation(fields: [clinicosId], references: [id])
-  clinicosId String   @unique @db.ObjectId // relation scalar field (used in the `@relation` attribute above)
+  clinicosId String   @unique
 
-  // Adding a date means that we can track when the record was last updated.
   date DateTime @default(now())
 
-  // There is no need for these to be optional, even though the user form allows them to be ignored.
-  // Once the form is submitted, the data is stringified. And so if the user hasn't provided an
-  // answer, the field will be an empty string. Thus null values are not needed.
   homeEmail         String?
   homeCel           String?
   homeDireccion     String?
@@ -146,24 +97,15 @@ model Contacto {
   lugarOrigenCiudad String?
 }
 
-// Otros datos del paciente (frontend optional).
+// Optional additional patient data.
 model Otros {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  // A 'Otros' object is optional, but must always be connected to one 'Clinicos'.
   clinicos   Clinicos @relation(fields: [clinicosId], references: [id])
-  clinicosId String   @unique @db.ObjectId // relation scalar field (used in the `@relation` attribute above)
+  clinicosId String   @unique
 
-  // Adding a date means that we can track when the record was last updated.
   date DateTime @default(now())
 
-  // There is no need for these to be optional, even though the user form allows them to be ignored.
-  // Once the form is submitted, the data is stringified. And so if the user hasn't provided an
-  // answer, the field will be an empty string. Thus null values are not needed.
   nombreOtros     String?
   apellidoPaterno String?
   apellidoMaterno String?
@@ -171,24 +113,15 @@ model Otros {
   nivelEstudios   String?
 }
 
-// Ocupación y Lugar de Trabajo (frontend optional).
+// Optional employment and workplace data.
 model Ocupacion {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  // A 'Ocupacion' object is optional, but must always be connected to one 'Clinicos'.
   clinicos   Clinicos @relation(fields: [clinicosId], references: [id])
-  clinicosId String   @unique @db.ObjectId // relation scalar field (used in the `@relation` attribute above)
+  clinicosId String   @unique
 
-  // Adding a date means that we can track when the record was last updated.
   date DateTime @default(now())
 
-  // There is no need for these to be optional, even though the user form allows them to be ignored.
-  // Once the form is submitted, the data is stringified. And so if the user hasn't provided an
-  // answer, the field will be an empty string. Thus null values are not needed.
   ocupacion        String?
   paisTrabajo      String?
   direccionTrabajo String?
@@ -196,57 +129,51 @@ model Ocupacion {
   estadoTrabajo    String?
 }
 
-// A 'Profile' is required to access the app - so is likely to be a healthcare professional.
-model Profile {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+// ------------------------------------------------------------------------------------------
+// USER / PROFILE MODEL
+// ------------------------------------------------------------------------------------------
 
-  // Basic scalar fields.
+model Profile {
+  id String @id @default(cuid())
+
   nombre            String
   apellidoPaterno   String
   apellidoMaterno   String?
   cedulaProfesional String   @unique
   institution       String
-  correoElectronico String
+  correoElectronico String   @unique
   password          String
   dateAdded         DateTime @default(now())
   locations         String[]
 }
 
-// Bacteria or Bacteria family.
-model Bacteria {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+// ------------------------------------------------------------------------------------------
+// REFERENCE / CATALOG MODELS
+// ------------------------------------------------------------------------------------------
 
+model Bacteria {
+  id       String @id @default(cuid())
   bacteria String @unique
   table    Int
 }
 
-// Resistance.
 model Resistance {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
+  id                  String @id @default(cuid())
   resistanceMechanism String @unique
 }
 
-// Hospital.
-model Hospital {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+model Gene {
+  id       String @id @default(cuid())
+  geneName String @unique
+}
 
+model Antibiotic {
+  id             String @id @default(cuid())
+  antibioticName String @unique
+}
+
+model Hospital {
+  id           String @id @default(cuid())
   clues        String @unique
   hospitalName String
   entidad      String
@@ -261,126 +188,106 @@ model Hospital {
   longitude    Float?
 }
 
-// Antimicrobiano.
-model AntimicrobianoTabla3 {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+model State {
+  id        String @id @default(cuid())
+  stateName String @unique
+}
 
-  antimicrobiano              String        @unique
-  Enterobacterales            BactStructure
-  SalmonellaShigella          BactStructure
-  PseudomonasAeruginosa       BactStructure
-  Acinetobacter               BactStructure
-  BurkholderiaCepacia         BactStructure
-  StenotrophomonasMaltophilia BactStructure
-  OtrosNoEnterobacterales     BactStructure
-  HaemophilusInfluenzae       BactStructure
-  NeisseriaGonorrhoeae        BactStructure
-  NaisseriaMeningitidis       BactStructure
-  Staphylococcus              BactStructure
-  Enterococcus                BactStructure
-  StreptococcusPneumoniae     BactStructure
-  StreptococcusHemolitico     BactStructure
-  StreptococcusViridans       BactStructure
+// ------------------------------------------------------------------------------------------
+// ANTIMICROBIANO LOOKUP TABLES
+// Each row is one antimicrobial agent. Each bacteria column stores a Json object
+// with shape { present: boolean, colour: string }, previously the BactStructure
+// embedded type (not supported in PostgreSQL).
+// ------------------------------------------------------------------------------------------
+
+model AntimicrobianoTabla3 {
+  id String @id @default(cuid())
+
+  antimicrobiano              String @unique
+  Enterobacterales            Json
+  SalmonellaShigella          Json
+  PseudomonasAeruginosa       Json
+  Acinetobacter               Json
+  BurkholderiaCepacia         Json
+  StenotrophomonasMaltophilia Json
+  OtrosNoEnterobacterales     Json
+  HaemophilusInfluenzae       Json
+  NeisseriaGonorrhoeae        Json
+  NaisseriaMeningitidis       Json
+  Staphylococcus              Json
+  Enterococcus                Json
+  StreptococcusPneumoniae     Json
+  StreptococcusHemolitico     Json
+  StreptococcusViridans       Json
 }
 
 model AntimicrobianoTabla4 {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  antimicrobiano  String        @unique
-  Anaerobios      BactStructure
-  Nocardia        BactStructure
-  Abiotrophia     BactStructure
-  Aerococcus      BactStructure
-  Aeromonas       BactStructure
-  Bacillus        BactStructure
-  Campylobacter   BactStructure
-  Corynebacterium BactStructure
-  Erysipelothrix  BactStructure
-  Gemella         BactStructure
-  Aggregatibacter BactStructure
-  Vibrio          BactStructure
-  Lactobacillus   BactStructure
-  Lactococcus     BactStructure
-  Leuconostoc     BactStructure
+  antimicrobiano  String @unique
+  Anaerobios      Json
+  Nocardia        Json
+  Abiotrophia     Json
+  Aerococcus      Json
+  Aeromonas       Json
+  Bacillus        Json
+  Campylobacter   Json
+  Corynebacterium Json
+  Erysipelothrix  Json
+  Gemella         Json
+  Aggregatibacter Json
+  Vibrio          Json
+  Lactobacillus   Json
+  Lactococcus     Json
+  Leuconostoc     Json
 }
 
 model AntimicrobianoTabla5 {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  antimicrobiano String        @unique
-  Listeria       BactStructure
-  Micrococcus    BactStructure
-  Moraxella      BactStructure
-  Pasteurella    BactStructure
-  Pediococcus    BactStructure
-  Rothia         BactStructure
-  Helycobacter   BactStructure
+  antimicrobiano String @unique
+  Listeria       Json
+  Micrococcus    Json
+  Moraxella      Json
+  Pasteurella    Json
+  Pediococcus    Json
+  Rothia         Json
+  Helycobacter   Json
 }
 
 model AntimicrobianoTabla6 {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
-  antimicrobiano           String        @unique
-  CandidaAlbicans          BactStructure
-  CandidaGlabrata          BactStructure
-  CandidaGuilliermondii    BactStructure
-  CandidaKrusei            BactStructure
-  CandidaParapsilosis      BactStructure
-  CandidaTropicalis        BactStructure
-  CandidaAuris             BactStructure
-  CandidaDubliniensis      BactStructure
-  CandidaKefyr             BactStructure
-  CandidaLusitaniae        BactStructure
-  CandidaPeliculosa        BactStructure
-  CandidaDuobushaemulonii  BactStructure
-  CandidaHaemulonii        BactStructure
-  CandidaPararugosa        BactStructure
-  CandidaRugosa            BactStructure
-  CryptococcusGatti        BactStructure
-  CryptococcusDeuterogatti BactStructure
-  CryptococcusNeoformans   BactStructure
-  AspergillusFumigatus     BactStructure
+  antimicrobiano           String @unique
+  CandidaAlbicans          Json
+  CandidaGlabrata          Json
+  CandidaGuilliermondii    Json
+  CandidaKrusei            Json
+  CandidaParapsilosis      Json
+  CandidaTropicalis        Json
+  CandidaAuris             Json
+  CandidaDubliniensis      Json
+  CandidaKefyr             Json
+  CandidaLusitaniae        Json
+  CandidaPeliculosa        Json
+  CandidaDuobushaemulonii  Json
+  CandidaHaemulonii        Json
+  CandidaPararugosa        Json
+  CandidaRugosa            Json
+  CryptococcusGatti        Json
+  CryptococcusDeuterogatti Json
+  CryptococcusNeoformans   Json
+  AspergillusFumigatus     Json
 }
 
-type BactStructure {
-  present Boolean
-  colour  String
-}
+// ------------------------------------------------------------------------------------------
+// INDRE RESISTOME MODEL
+// ------------------------------------------------------------------------------------------
 
-// Gene.
-model Gene {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  geneName String @unique
-}
-
-// InDRE object.
+// InDRE bacteriological record. dynamicData holds the antibiotic susceptibility
+// values selected by the user in the InDRE form (variable structure per record).
 model Indreobj {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id String @id @default(cuid())
 
   bacteria            String
   resistanceMechanism String[]
@@ -395,20 +302,14 @@ model Indreobj {
   dateAdded DateTime @default(now())
 }
 
-model State {
-  // ID field (primary key): an ID uniquely identifies individual records of a model.
-  // If your model's ID is an ObjectId (represented by a String field), you must add @db.ObjectId to
-  // the model's ID and the relation scalar field on the other side of the relation.
-  // Note: we don't define a @unique constraint, since the same field cannot be an id and unique on MongoDB.
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-
-  stateName String @unique
-}
+// ------------------------------------------------------------------------------------------
+// GEO DATA
+// ------------------------------------------------------------------------------------------
 
 model StateGeoJson {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  id        String   @id @default(cuid())
   stateName String   @unique
-  geoJson   Json // Use the Json type to store GeoJSON data
+  geoJson   Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

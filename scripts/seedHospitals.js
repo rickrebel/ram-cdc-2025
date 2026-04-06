@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import list_of_hospitals from "../data/ESTABLECIMIENTO_SALUD_202501.json" assert { type: "json" };
+import list_of_hospitals from "../data/ESTABLECIMIENTO_SALUD_202501.json" with { type: "json" };
 import dotenv from "dotenv";
 
 // 'dotenv' here is used to load environment variables from a .env file so that they

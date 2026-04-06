@@ -17,7 +17,7 @@ import {
   addResistanceMechanism,
   addAntibiotic,
   addGene,
-  addHospital,
+  // addHospital, — comentada junto con la función; hospitales solo vía catálogo
 } from "~/server/additions.server";
 import {
   InDRELoader,
@@ -89,19 +89,16 @@ export async function action({ request }: ActionFunctionArgs) {
     const newGeneCreator = indreData.newAntibioticCreator;
     const geneArray = newGeneCreator.split(";");
 
-    // Split the 'newHospitalCreator' string at the semicolon character and create an array of objects.
-    const newHospitalCreator = indreData.newHospitalCreator;
-    const hospitalArray = newHospitalCreator.split(";");
-
-    // Make a new array of hospitals by taking each 'hospitalArray' entry
-    // and splitting it at the comma character.
-    const hospitalName: string[] = [];
-    const clues: string[] = [];
-    for (let i = 0; i < hospitalArray.length; i++) {
-      const temp = hospitalArray[i].split(",");
-      clues.push(temp[0]);
-      hospitalName.push(temp[1]);
-    }
+    // Variables de hospital comentadas — addHospital deshabilitada.
+    // const newHospitalCreator = indreData.newHospitalCreator;
+    // const hospitalArray = newHospitalCreator.split(";");
+    // const hospitalName: string[] = [];
+    // const clues: string[] = [];
+    // for (let i = 0; i < hospitalArray.length; i++) {
+    //   const temp = hospitalArray[i].split(",");
+    //   clues.push(temp[0]);
+    //   hospitalName.push(temp[1]);
+    // }
 
     // Make sure the 'resistanceMechanismArray' is not empty.
     if (
@@ -149,24 +146,21 @@ export async function action({ request }: ActionFunctionArgs) {
       await addGene(geneArray);
     }
 
-    // Make sure the 'hospitalArray' is not empty.
-    if (
-      !(
-        hospitalArray.length === 0 ||
-        (hospitalArray.length === 1 && hospitalArray[0] === "")
-      )
-    ) {
-      // Make sure the first letter of each word of each entry in the 'hospitalName' is capitalized.
-      for (let i = 0; i < hospitalName.length; i++) {
-        hospitalName[i] = hospitalName[i]
-          .split(" ")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ");
-      }
-
-      // If the 'hospitalArray' is not empty, then create a new 'Hospital' object in the database.
-      await addHospital(hospitalArray, hospitalName, clues);
-    }
+    // Bloque addHospital comentado — hospitales solo vía catálogo oficial.
+    // if (
+    //   !(
+    //     hospitalArray.length === 0 ||
+    //     (hospitalArray.length === 1 && hospitalArray[0] === "")
+    //   )
+    // ) {
+    //   for (let i = 0; i < hospitalName.length; i++) {
+    //     hospitalName[i] = hospitalName[i]
+    //       .split(" ")
+    //       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    //       .join(" ");
+    //   }
+    //   await addHospital(hospitalArray, hospitalName, clues);
+    // }
 
     return null;
   }

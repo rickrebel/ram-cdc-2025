@@ -58,11 +58,12 @@ export async function getAllVisitation(): Promise<Visitation[] | null> {
 
 export async function getAllVisitationIdsForClinicos(
   clinicosId: string
-): Promise<{ visitationIds: string[] } | null> {
-  return await prisma.clinicos.findFirst({
-    where: { id: clinicosId },
-    select: { visitationIds: true },
+): Promise<{ visitationIds: string[] }> {
+  const visitations = await prisma.visitation.findMany({
+    where: { clinicosId },
+    select: { id: true },
   });
+  return { visitationIds: visitations.map((v) => v.id) };
 }
 
 export async function getCurrentVisitationIdForClinicos(
@@ -112,6 +113,24 @@ export async function getOcupacion(id: string): Promise<Ocupacion | null> {
   return await prisma.ocupacion.findFirst({
     where: { id },
   });
+}
+
+export async function getContactoByClinicos(
+  clinicosId: string
+): Promise<Contacto | null> {
+  return await prisma.contacto.findFirst({ where: { clinicosId } });
+}
+
+export async function getOtrosByClinicos(
+  clinicosId: string
+): Promise<Otros | null> {
+  return await prisma.otros.findFirst({ where: { clinicosId } });
+}
+
+export async function getOcupacionByClinicos(
+  clinicosId: string
+): Promise<Ocupacion | null> {
+  return await prisma.ocupacion.findFirst({ where: { clinicosId } });
 }
 
 export async function getOtros(id: string): Promise<Otros | null> {

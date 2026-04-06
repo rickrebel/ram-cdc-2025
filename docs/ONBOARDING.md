@@ -1,7 +1,6 @@
 # Guía de onboarding técnico — RAM-CDC-2025
 
-Este documento es para Ricardo: explica cómo funcionan las tecnologías del
-stack y cómo están aplicadas concretamente en este proyecto.
+Este documento es para Ricardo: explica cómo funcionan las tecnologías del stack y cómo están aplicadas concretamente en este proyecto.
 
 ---
 
@@ -19,10 +18,7 @@ stack y cómo están aplicadas concretamente en este proyecto.
 | **Recharts** | Gráficas en React (barras, radar, pastel) |
 | **OpenLayers** | Mapas interactivos con datos geográficos |
 
-La combinación Remix + Prisma + MongoDB es una arquitectura "full-stack en un
-solo repo": el mismo archivo de ruta puede tener código de servidor (queries a
-la BD) y código de cliente (componentes visuales). No hay un backend separado
-como en Django.
+La combinación Remix + Prisma + MongoDB es una arquitectura "full-stack en un solo repo": el mismo archivo de ruta puede tener código de servidor (queries a la BD) y código de cliente (componentes visuales). No hay un backend separado como en Django.
 
 ---
 
@@ -32,10 +28,7 @@ como en Django.
 
 ### Qué es
 
-Remix es un framework para React que resuelve algo que React puro no resuelve:
-cómo conectar el servidor (base de datos, sesiones, validaciones) con la UI de
-forma ordenada. En Django lo harías con views + templates; en Remix lo haces
-con **loaders**, **actions** y **componentes React** dentro del mismo archivo.
+Remix es un framework para React que resuelve algo que React puro no resuelve: cómo conectar el servidor (base de datos, sesiones, validaciones) con la UI de forma ordenada. En Django lo harías con views + templates; en Remix lo haces con **loaders**, **actions** y **componentes React** dentro del mismo archivo.
 
 ### El patrón loader / action / component
 
@@ -93,15 +86,11 @@ El nombre del archivo determina la URL. Las convenciones son:
 | `_app.analyse.tsx` | `/analyse` | Dashboard |
 | `$.tsx` | cualquier ruta no encontrada | 404 |
 
-El prefijo `_` (guión bajo) en `_public` y `_app` indica que son **layouts**:
-archivos que envuelven visualmente a sus rutas hijas pero no tienen URL propia.
+El prefijo `_` (guión bajo) en `_public` y `_app` indica que son **layouts**: archivos que envuelven visualmente a sus rutas hijas pero no tienen URL propia.
 
 ### La convención `.server.ts`
 
-Los archivos en `app/server/` tienen el sufijo `.server.ts`. Remix/Vite usa
-esto para garantizar que ese código **nunca se envíe al navegador**. Si
-importas accidentalmente algo de `.server.ts` en un componente de cliente,
-el build falla con error. Es la forma de proteger credenciales y lógica sensible.
+Los archivos en `app/server/` tienen el sufijo `.server.ts`. Remix/Vite usa  esto para garantizar que ese código **nunca se envíe al navegador**. Si importas accidentalmente algo de `.server.ts` en un componente de cliente,  el build falla con error. Es la forma de proteger credenciales y lógica sensible.
 
 ---
 
@@ -112,8 +101,7 @@ el build falla con error. Es la forma de proteger credenciales y lógica sensibl
 
 ### Qué hace Prisma aquí
 
-Prisma es el intermediario entre el código TypeScript y MongoDB. Tú escribes
-TypeScript; Prisma lo traduce a operaciones de MongoDB. Define los modelos en
+Prisma es el intermediario entre el código TypeScript y MongoDB. Tú escribes  TypeScript; Prisma lo traduce a operaciones de MongoDB. Define los modelos en
 `prisma/schema.prisma`.
 
 ### Cómo está configurada la conexión
@@ -133,8 +121,7 @@ if (process.env.NODE_ENV === "production") {
 }
 ```
 
-Todos los archivos en `app/server/` importan este `prisma` y hacen consultas
-con él. Ejemplo de lectura (`getters.server.ts`):
+Todos los archivos en `app/server/` importan este `prisma` y hacen consultas con él. Ejemplo de lectura (`getters.server.ts`):
 
 ```ts
 import { prisma } from "~/server/database.server";
@@ -153,9 +140,7 @@ npx prisma studio     # Abre un explorador visual de la BD en el navegador
 
 ### Diferencia importante con SQL
 
-MongoDB no tiene tablas ni foreign keys reales. Prisma declara las relaciones
-en el schema, pero MongoDB las implementa guardando el ID del documento
-relacionado como un campo string. Si borras un documento padre, los hijos
+MongoDB no tiene tablas ni foreign keys reales. Prisma declara las relaciones en el schema, pero MongoDB las implementa guardando el ID del documento relacionado como un campo string. Si borras un documento padre, los hijos
 no se borran automáticamente — Prisma gestiona esto en el código de la app.
 
 El campo ID en MongoDB se llama `_id` (ObjectId), mapeado así en el schema:
@@ -172,10 +157,7 @@ id String @id @default(auto()) @map("_id") @db.ObjectId
 
 ### Qué problema resuelve
 
-El flujo de registro de pacientes tiene 5 pasos en rutas distintas. Cuando el
-usuario termina el paso 1 y crea un registro `Clinicos`, el ID generado por
-MongoDB necesita estar disponible en el paso 2, 3, 4 y 5. No se puede pasar
-por URL (es un ID interno) ni por el servidor (el usuario aún no termina).
+El flujo de registro de pacientes tiene 5 pasos en rutas distintas. Cuando el usuario termina el paso 1 y crea un registro `Clinicos`, el ID generado por MongoDB necesita estar disponible en el paso 2, 3, 4 y 5. No se puede pasar por URL (es un ID interno) ni por el servidor (el usuario aún no termina).
 
 Zustand guarda ese ID en memoria del navegador mientras la sesión está abierta.
 
@@ -207,9 +189,7 @@ console.log(clinicosID);  // lee el ID
 | `useSecondarySymptomStore` | Síntomas secundarios marcados por el usuario |
 | `useStepStore` | Estado de progreso del wizard (paso actual, completado, próximo) |
 
-**Limitación conocida:** estos stores viven en memoria del navegador. Si el
-usuario recarga la página a mitad del flujo, los stores se vacían y pierde el
-progreso. No se ha implementado persistencia (localStorage) intencionalmente.
+**Limitación conocida:** estos stores viven en memoria del navegador. Si el  usuario recarga la página a mitad del flujo, los stores se vacían y pierde el progreso. No se ha implementado persistencia (localStorage) intencionalmente.
 
 ---
 
@@ -220,8 +200,7 @@ progreso. No se ha implementado persistencia (localStorage) intencionalmente.
 
 ### Cómo leer las clases de Tailwind
 
-Tailwind reemplaza el CSS tradicional con clases utilitarias directamente en
-el HTML/JSX. Ejemplos:
+Tailwind reemplaza el CSS tradicional con clases utilitarias directamente en el HTML/JSX. Ejemplos:
 
 ```
 mt-6        → margin-top: 1.5rem
@@ -231,15 +210,11 @@ px-4        → padding-left: 1rem; padding-right: 1rem
 bg-base-100 → background-color: valor definido por el tema activo
 ```
 
-Los valores `base-100`, `primary`, `secondary`, `accent` son variables de
-color de DaisyUI, no de Tailwind puro.
+Los valores `base-100`, `primary`, `secondary`, `accent` son variables de color de DaisyUI, no de Tailwind puro.
 
 ### DaisyUI y los temas del proyecto
 
-DaisyUI agrega componentes prearmados (botones, modales, tablas, badges) y
-un sistema de temas. El proyecto tiene cuatro temas personalizados definidos
-en `tailwind.config.ts`: `mexico`, `issste`, `sonora`, `mytheme`. El usuario
-puede cambiarlos con el componente `theme-change`.
+DaisyUI agrega componentes prearmados (botones, modales, tablas, badges) y un sistema de temas. El proyecto tiene cuatro temas personalizados definidos en `tailwind.config.ts`: `mexico`, `issste`, `sonora`, `mytheme`. El usuario puede cambiarlos con el componente `theme-change`.
 
 Las clases de DaisyUI siguen este patrón:
 ```
@@ -256,9 +231,7 @@ modal modal-open   → modal visible
 
 ### Cómo se usa en el proyecto
 
-Las gráficas están en `app/components/charts/`. Recharts funciona con
-componentes React declarativos: describes la estructura de la gráfica y le
-pasas los datos como props.
+Las gráficas están en `app/components/charts/`. Recharts funciona con componentes React declarativos: describes la estructura de la gráfica y le pasas los datos como props.
 
 ```tsx
 <BarChart data={myData}>
@@ -268,8 +241,7 @@ pasas los datos como props.
 </BarChart>
 ```
 
-Los datos los prepara `app/server/charting.server.ts` y los recibe el
-componente vía el `loader` de `_app.analyse.tsx`.
+Los datos los prepara `app/server/charting.server.ts` y los recibe el componente vía el `loader` de `_app.analyse.tsx`.
 
 ---
 
@@ -279,14 +251,9 @@ componente vía el `loader` de `_app.analyse.tsx`.
 
 ### Cómo se usa en el proyecto
 
-OpenLayers renderiza el mapa de estados de México y la ubicación de hospitales.
-Los datos geográficos (polígonos de estados) están en MongoDB como documentos
-`StateGeoJson` y se cargan vía loader. Las coordenadas de hospitales vienen
-del modelo `Hospital` (campos `latitude` y `longitude`).
+OpenLayers renderiza el mapa de estados de México y la ubicación de hospitales.  Los datos geográficos (polígonos de estados) están en MongoDB como documentos `StateGeoJson` y se cargan vía loader. Las coordenadas de hospitales vienen del modelo `Hospital` (campos `latitude` y `longitude`).
 
-OpenLayers es una librería imperativa (no declarativa como Recharts), por lo
-que interactúa con un elemento `<canvas>` del DOM directamente dentro de un
-`useEffect` de React.
+OpenLayers es una librería imperativa (no declarativa como Recharts), por lo que interactúa con un elemento `<canvas>` del DOM directamente dentro de un `useEffect` de React.
 
 ---
 
@@ -307,8 +274,7 @@ data/              ← archivos JSON fuente usados por los seeds
 docs/              ← esta documentación
 ```
 
-El alias `~/` siempre apunta a `app/`. Es decir, `~/server/database.server`
-equivale a `app/server/database.server.ts`.
+El alias `~/` siempre apunta a `app/`. Es decir, `~/server/database.server` equivale a `app/server/database.server.ts`.
 
 ---
 
@@ -316,26 +282,20 @@ equivale a `app/server/database.server.ts`.
 
 **Si quieres entender una pantalla específica:**
 → Busca el archivo de ruta en `app/routes/` que corresponda a la URL.
-→ Lee el `loader` (qué datos trae del servidor) y el `action` (qué hace con
-los formularios). El componente `default` te dice qué se renderiza.
+→ Lee el `loader` (qué datos trae del servidor) y el `action` (qué hace con los formularios). El componente `default` te dice qué se renderiza.
 
 **Si quieres entender cómo se guardan los datos:**
-→ El `action` de la ruta llama a funciones en `app/server/additions.server.ts`
-(crear) o `app/server/updates.server.ts` (actualizar) o
-`app/server/upsert.server.ts` (crear o actualizar).
+→ El `action` de la ruta llama a funciones en `app/server/additions.server.ts` (crear) o `app/server/updates.server.ts` (actualizar) o `app/server/upsert.server.ts` (crear o actualizar).
 
 **Si quieres entender cómo se leen los datos:**
 → El `loader` llama a funciones en `app/server/getters.server.ts`.
 
 **Si quieres entender un componente visual:**
-→ Empieza en `app/components/` buscando por el dominio (patients, inDRE,
-charts, auth, navigation).
+→ Empieza en `app/components/` buscando por el dominio (patients, inDRE, charts, auth, navigation).
 
 **Si quieres cambiar el schema de la BD:**
 → Edita `prisma/schema.prisma`, luego corre `npx prisma generate`.
-→ MongoDB no requiere migraciones (es schema-less), pero el cliente Prisma
-sí necesita regenerarse para que TypeScript reconozca los nuevos campos.
+→ MongoDB no requiere migraciones (es schema-less), pero el cliente Prisma sí necesita regenerarse para que TypeScript reconozca los nuevos campos.
 
 **Si quieres entender la lógica de los algoritmos clínicos:**
-→ Ver `docs/PLATAFORMA.md` para el contexto médico, luego `app/algorithms/`
-para la implementación.
+→ Ver `docs/PLATAFORMA.md` para el contexto médico, luego `app/algorithms/` para la implementación.
