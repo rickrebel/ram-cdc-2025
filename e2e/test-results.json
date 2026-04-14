@@ -1,7 +1,7 @@
 {
   "config": {
-    "configFile": "E:\\Local GitHub Repos Apollo\\cdc-2025-jan-remix\\playwright.config.ts",
-    "rootDir": "E:/Local GitHub Repos Apollo/cdc-2025-jan-remix/e2e",
+    "configFile": "D:\\dev\\ssa\\ram-cdc-2025\\playwright.config.ts",
+    "rootDir": "D:/dev/ssa/ram-cdc-2025/e2e",
     "forbidOnly": false,
     "fullyParallel": true,
     "globalSetup": null,
@@ -11,7 +11,7 @@
     "grepInvert": null,
     "maxFailures": 0,
     "metadata": {
-      "actualWorkers": 1
+      "actualWorkers": 5
     },
     "preserveOutput": "always",
     "reporter": [
@@ -33,13 +33,13 @@
     "quiet": false,
     "projects": [
       {
-        "outputDir": "E:/Local GitHub Repos Apollo/cdc-2025-jan-remix/test-results",
+        "outputDir": "D:/dev/ssa/ram-cdc-2025/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {},
         "id": "Google Chrome",
         "name": "Google Chrome",
-        "testDir": "E:/Local GitHub Repos Apollo/cdc-2025-jan-remix/e2e",
+        "testDir": "D:/dev/ssa/ram-cdc-2025/e2e",
         "testIgnore": [],
         "testMatch": [
           "**/*.@(spec|test).?(c|m)[jt]s?(x)"
@@ -51,7 +51,7 @@
     "updateSnapshots": "missing",
     "updateSourceMethod": "patch",
     "version": "1.50.1",
-    "workers": 1,
+    "workers": 10,
     "webServer": {
       "command": "npm run dev",
       "url": "http://localhost:5173",
@@ -60,6 +60,81 @@
     }
   },
   "suites": [
+    {
+      "title": "createNewClinico.test.ts",
+      "file": "createNewClinico.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Finding CURPs",
+          "file": "createNewClinico.test.ts",
+          "line": 16,
+          "column": 15,
+          "specs": [
+            {
+              "title": "User can create new @clinico",
+              "ok": false,
+              "tags": [
+                "clinico"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "status": "failed",
+                      "duration": 18522,
+                      "error": {
+                        "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:5173/rag/add/define/alpha?vID=cmnto33330002hgg483tzqmcu&cID=cmnto33310001hgg45mihy3hj\"\n============================================================",
+                        "stack": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:5173/rag/add/define/alpha?vID=cmnto33330002hgg483tzqmcu&cID=cmnto33310001hgg45mihy3hj\"\n============================================================\n    at findByTextThenClick (D:\\dev\\ssa\\ram-cdc-2025\\e2e\\helpers.ts:65:16)\n    at primaryConditions (D:\\dev\\ssa\\ram-cdc-2025\\e2e\\primaryConditions.ts:24:3)\n    at D:\\dev\\ssa\\ram-cdc-2025\\e2e\\createNewClinico.test.ts:198:45",
+                        "location": {
+                          "file": "D:\\dev\\ssa\\ram-cdc-2025\\e2e\\helpers.ts",
+                          "column": 16,
+                          "line": 65
+                        },
+                        "snippet": "\u001b[90m   at \u001b[39mhelpers.ts:65\n\n\u001b[0m \u001b[90m 63 |\u001b[39m   \u001b[36mif\u001b[39m (afterURL) {\n \u001b[90m 64 |\u001b[39m     \u001b[36mconst\u001b[39m resolvedAfter \u001b[33m=\u001b[39m withBase(afterURL)\u001b[33m!\u001b[39m\u001b[33m;\u001b[39m\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 65 |\u001b[39m     \u001b[36mawait\u001b[39m page\u001b[33m.\u001b[39mwaitForURL(resolvedAfter\u001b[33m,\u001b[39m {\n \u001b[90m    |\u001b[39m                \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 66 |\u001b[39m       timeout\u001b[33m:\u001b[39m \u001b[35m10000\u001b[39m\u001b[33m,\u001b[39m\n \u001b[90m 67 |\u001b[39m     })\u001b[33m;\u001b[39m\n \u001b[90m 68 |\u001b[39m     page\u001b[33m.\u001b[39mwaitForLoadState(\u001b[32m\"domcontentloaded\"\u001b[39m)\u001b[33m;\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "D:\\dev\\ssa\\ram-cdc-2025\\e2e\\helpers.ts",
+                            "column": 16,
+                            "line": 65
+                          },
+                          "message": "TimeoutError: page.waitForURL: Timeout 10000ms exceeded.\n=========================== logs ===========================\nwaiting for navigation until \"load\"\n  navigated to \"http://localhost:5173/rag/add/define/alpha?vID=cmnto33330002hgg483tzqmcu&cID=cmnto33310001hgg45mihy3hj\"\n============================================================\n\n   at helpers.ts:65\n\n  63 |   if (afterURL) {\n  64 |     const resolvedAfter = withBase(afterURL)!;\n> 65 |     await page.waitForURL(resolvedAfter, {\n     |                ^\n  66 |       timeout: 10000,\n  67 |     });\n  68 |     page.waitForLoadState(\"domcontentloaded\");\n    at findByTextThenClick (D:\\dev\\ssa\\ram-cdc-2025\\e2e\\helpers.ts:65:16)\n    at primaryConditions (D:\\dev\\ssa\\ram-cdc-2025\\e2e\\primaryConditions.ts:24:3)\n    at D:\\dev\\ssa\\ram-cdc-2025\\e2e\\createNewClinico.test.ts:198:45"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-11T01:39:29.347Z",
+                      "attachments": [],
+                      "errorLocation": {
+                        "file": "D:\\dev\\ssa\\ram-cdc-2025\\e2e\\helpers.ts",
+                        "column": 16,
+                        "line": 65
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "49463bf5496a05344a9c-ee9f4bbcfb36a657ad46",
+              "file": "createNewClinico.test.ts",
+              "line": 17,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
     {
       "title": "loginAndSignup.test.ts",
       "file": "loginAndSignup.test.ts",
@@ -70,7 +145,7 @@
         {
           "title": "Login and Signup Testing",
           "file": "loginAndSignup.test.ts",
-          "line": 13,
+          "line": 14,
           "column": 15,
           "specs": [
             {
@@ -86,14 +161,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 6655,
+                      "duration": 5464,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:01:46.616Z",
+                      "startTime": "2026-04-11T01:39:29.355Z",
                       "attachments": []
                     }
                   ],
@@ -102,7 +177,7 @@
               ],
               "id": "3a75f72686c704fc1332-5cbdc76ff5e9a0415519",
               "file": "loginAndSignup.test.ts",
-              "line": 14,
+              "line": 15,
               "column": 3
             },
             {
@@ -118,14 +193,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 2483,
+                      "duration": 1278,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:01:53.535Z",
+                      "startTime": "2026-04-11T01:39:35.045Z",
                       "attachments": []
                     }
                   ],
@@ -134,7 +209,7 @@
               ],
               "id": "3a75f72686c704fc1332-788b1960f9431545709c",
               "file": "loginAndSignup.test.ts",
-              "line": 35,
+              "line": 36,
               "column": 3
             },
             {
@@ -150,14 +225,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1301,
+                      "duration": 1117,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:01:56.021Z",
+                      "startTime": "2026-04-11T01:39:36.324Z",
                       "attachments": []
                     }
                   ],
@@ -166,7 +241,7 @@
               ],
               "id": "3a75f72686c704fc1332-1746e128aab1063f668c",
               "file": "loginAndSignup.test.ts",
-              "line": 68,
+              "line": 69,
               "column": 3
             },
             {
@@ -182,14 +257,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1632,
+                      "duration": 1069,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:01:57.325Z",
+                      "startTime": "2026-04-11T01:39:37.443Z",
                       "attachments": []
                     }
                   ],
@@ -198,7 +273,7 @@
               ],
               "id": "3a75f72686c704fc1332-24924627b5aaefe9bf88",
               "file": "loginAndSignup.test.ts",
-              "line": 108,
+              "line": 115,
               "column": 3
             },
             {
@@ -214,14 +289,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1727,
+                      "duration": 1163,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:01:58.959Z",
+                      "startTime": "2026-04-11T01:39:38.514Z",
                       "attachments": []
                     }
                   ],
@@ -230,7 +305,7 @@
               ],
               "id": "3a75f72686c704fc1332-4c7920cf2b88ef44bb19",
               "file": "loginAndSignup.test.ts",
-              "line": 148,
+              "line": 155,
               "column": 3
             },
             {
@@ -246,14 +321,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1484,
+                      "duration": 1323,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:00.688Z",
+                      "startTime": "2026-04-11T01:39:39.679Z",
                       "attachments": []
                     }
                   ],
@@ -262,7 +337,7 @@
               ],
               "id": "3a75f72686c704fc1332-87d52b7755ef9cb5cdea",
               "file": "loginAndSignup.test.ts",
-              "line": 190,
+              "line": 197,
               "column": 3
             },
             {
@@ -278,14 +353,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1205,
+                      "duration": 1069,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:02.176Z",
+                      "startTime": "2026-04-11T01:39:41.004Z",
                       "attachments": []
                     }
                   ],
@@ -294,7 +369,7 @@
               ],
               "id": "3a75f72686c704fc1332-1cdb93c667ecb34678f7",
               "file": "loginAndSignup.test.ts",
-              "line": 232,
+              "line": 239,
               "column": 3
             },
             {
@@ -310,14 +385,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1394,
+                      "duration": 1449,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:03.383Z",
+                      "startTime": "2026-04-11T01:39:42.074Z",
                       "attachments": []
                     }
                   ],
@@ -326,7 +401,7 @@
               ],
               "id": "3a75f72686c704fc1332-0221f197efc3048dd8a8",
               "file": "loginAndSignup.test.ts",
-              "line": 274,
+              "line": 281,
               "column": 3
             },
             {
@@ -342,14 +417,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 1,
                       "status": "passed",
-                      "duration": 1164,
+                      "duration": 1433,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:04.779Z",
+                      "startTime": "2026-04-11T01:39:43.525Z",
                       "attachments": []
                     }
                   ],
@@ -358,7 +433,7 @@
               ],
               "id": "3a75f72686c704fc1332-5ed0c2a9c9b8da451876",
               "file": "loginAndSignup.test.ts",
-              "line": 348,
+              "line": 355,
               "column": 3
             }
           ]
@@ -366,7 +441,7 @@
         {
           "title": "Finding CURPs",
           "file": "loginAndSignup.test.ts",
-          "line": 373,
+          "line": 380,
           "column": 15,
           "specs": [
             {
@@ -382,14 +457,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "status": "passed",
-                      "duration": 6632,
+                      "duration": 7433,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:05.947Z",
+                      "startTime": "2026-04-11T01:39:29.350Z",
                       "attachments": []
                     }
                   ],
@@ -398,7 +473,7 @@
               ],
               "id": "3a75f72686c704fc1332-5154121b20a4112e4b0d",
               "file": "loginAndSignup.test.ts",
-              "line": 374,
+              "line": 381,
               "column": 3
             },
             {
@@ -414,14 +489,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "status": "passed",
-                      "duration": 6829,
+                      "duration": 5987,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:12.581Z",
+                      "startTime": "2026-04-11T01:39:37.074Z",
                       "attachments": []
                     }
                   ],
@@ -430,7 +505,7 @@
               ],
               "id": "3a75f72686c704fc1332-35c5fdf779e73b5821b8",
               "file": "loginAndSignup.test.ts",
-              "line": 417,
+              "line": 424,
               "column": 3
             },
             {
@@ -446,14 +521,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "status": "passed",
-                      "duration": 6640,
+                      "duration": 6366,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:19.413Z",
+                      "startTime": "2026-04-11T01:39:43.062Z",
                       "attachments": []
                     }
                   ],
@@ -462,7 +537,7 @@
               ],
               "id": "3a75f72686c704fc1332-fb42303a6229338b29ef",
               "file": "loginAndSignup.test.ts",
-              "line": 469,
+              "line": 476,
               "column": 3
             },
             {
@@ -478,14 +553,14 @@
                   "projectName": "Google Chrome",
                   "results": [
                     {
-                      "workerIndex": 0,
+                      "workerIndex": 2,
                       "status": "passed",
-                      "duration": 6771,
+                      "duration": 5997,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2025-02-19T22:02:26.056Z",
+                      "startTime": "2026-04-11T01:39:49.430Z",
                       "attachments": []
                     }
                   ],
@@ -494,7 +569,88 @@
               ],
               "id": "3a75f72686c704fc1332-fec164a90939242f532d",
               "file": "loginAndSignup.test.ts",
-              "line": 518,
+              "line": 525,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "navbarNavigation.test.ts",
+      "file": "navbarNavigation.test.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Navbar navigation after login",
+          "file": "navbarNavigation.test.ts",
+          "line": 27,
+          "column": 6,
+          "specs": [
+            {
+              "title": "App navbar links load without ErrorBoundary",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "status": "passed",
+                      "duration": 7205,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-11T01:39:29.345Z",
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "33ed5f15fb542f953747-4b62e63780fa588655e8",
+              "file": "navbarNavigation.test.ts",
+              "line": 28,
+              "column": 3
+            },
+            {
+              "title": "Public navbar links load without ErrorBoundary",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Google Chrome",
+                  "projectName": "Google Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "status": "passed",
+                      "duration": 5611,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-04-11T01:39:29.344Z",
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "33ed5f15fb542f953747-1a1eaa818a617f51b434",
+              "file": "navbarNavigation.test.ts",
+              "line": 65,
               "column": 3
             }
           ]
@@ -504,11 +660,11 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2025-02-19T22:01:40.379Z",
-    "duration": 52972.125,
-    "expected": 13,
+    "startTime": "2026-04-11T01:39:25.326Z",
+    "duration": 30616.172000000002,
+    "expected": 15,
     "skipped": 0,
-    "unexpected": 0,
+    "unexpected": 1,
     "flaky": 0
   }
 }

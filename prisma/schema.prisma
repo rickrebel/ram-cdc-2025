@@ -18,7 +18,8 @@ datasource db {
 // CLINICAL DATA MODELS
 // ------------------------------------------------------------------------------------------
 
-// Static details about the patient.
+/// Patient static record, unique on CURP (Mexican national ID).
+/// One-to-many with Visitation; optional one-to-one with Contacto, Otros, Ocupacion.
 model Clinicos {
   id String @id @default(cuid())
 
@@ -41,7 +42,8 @@ model Clinicos {
   dateAdded      DateTime @default(now())
 }
 
-// Each clinical visit linked to a patient.
+/// Clinical visit linked to a patient. Carries symptoms, conditions, and vitals.
+/// A Clinicos can have many Visitations.
 model Visitation {
   id String @id @default(cuid())
 
@@ -133,6 +135,7 @@ model Ocupacion {
 // USER / PROFILE MODEL
 // ------------------------------------------------------------------------------------------
 
+/// Healthcare professional (user account). Unique on email and cédula profesional.
 model Profile {
   id String @id @default(cuid())
 
@@ -151,6 +154,8 @@ model Profile {
 // REFERENCE / CATALOG MODELS
 // ------------------------------------------------------------------------------------------
 
+/// Bacteria species catalog. `table` indicates which CLSI susceptibility table applies.
+/// Linked to Antimicrobiano via AntimicrobianoSusceptibilidad junction.
 model Bacteria {
   id                 String @id @default(cuid())
   bacteria           String @unique
@@ -202,6 +207,8 @@ model State {
 // 3 catalogs (Susceptibilidad, Antimicrobiano, Bacteria) + 1 junction table.
 // ------------------------------------------------------------------------------------------
 
+/// Susceptibility category catalog (PRESENTE, RESISTENTE, SENSIBLE, INTERMEDIO).
+/// Each has an associated display color.
 model Susceptibilidad {
   id                String @id @default(cuid())
   nombre            String @unique
@@ -209,6 +216,8 @@ model Susceptibilidad {
   susceptibilidades AntimicrobianoSusceptibilidad[]
 }
 
+/// Antimicrobial agent catalog (73 agents). `tables` Int[] indicates which
+/// CLSI tables this agent appears in.
 model Antimicrobiano {
   id                String @id @default(cuid())
   nombre            String @unique
@@ -217,6 +226,8 @@ model Antimicrobiano {
   susceptibilidades AntimicrobianoSusceptibilidad[]
 }
 
+/// Junction: Antimicrobiano + Bacteria → Susceptibilidad.
+/// Unique on [antimicrobianoId, bacteriaId] — one result per agent-bacteria pair.
 model AntimicrobianoSusceptibilidad {
   id                String          @id @default(cuid())
   bacteriaId        String
@@ -233,8 +244,10 @@ model AntimicrobianoSusceptibilidad {
 // INDRE RESISTOME MODEL
 // ------------------------------------------------------------------------------------------
 
-// InDRE bacteriological record. dynamicData holds the antibiotic susceptibility
-// values selected by the user in the InDRE form (variable structure per record).
+/// InDRE resistome entry: bacteria species, resistance mechanisms, genes,
+/// and antibiotic susceptibility from lab culture results.
+/// dynamicData (Json) holds the susceptibility values selected in the InDRE
+/// form — variable structure per record, depends on the bacteria's CLSI table.
 model Indreobj {
   id String @id @default(cuid())
 
@@ -255,6 +268,7 @@ model Indreobj {
 // GEO DATA
 // ------------------------------------------------------------------------------------------
 
+/// Mexican state boundaries as GeoJSON polygons, used by OpenLayers maps.
 model StateGeoJson {
   id        String   @id @default(cuid())
   stateName String   @unique

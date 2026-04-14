@@ -13,7 +13,6 @@ import {
 import { Visitation } from "@prisma/client";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { requireUserSession } from "~/server/auth.server";
-import { appPath } from "~/server/basepath.server";
 import Define from "~/components/inputgroups/DefineCondition";
 import PrevioSiguiente from "~/components/inputgroups/PrevioSiguiente";
 import { getVisitation } from "~/server/getters.server";
@@ -225,7 +224,7 @@ export async function action({ request }: ActionFunctionArgs) {
   );
 
   return redirect(
-    appPath(`/add/revise?vID=${visitationId}&cID=${clinicosId}`)
+    `/add/revise?vID=${visitationId}&cID=${clinicosId}`
   );
 }
 

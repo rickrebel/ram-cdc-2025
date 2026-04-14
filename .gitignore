@@ -18,3 +18,5 @@ node_modules
 /blob-report/
 /playwright/.cache/
 /e2e/test-results/
+
+.playwright-mcp/*

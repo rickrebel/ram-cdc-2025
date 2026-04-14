@@ -1,5 +1,6 @@
-import { Page, expect } from "@playwright/test";
-import { typeRandomData } from "./createRandom";
+import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import type { typeRandomData } from "./createRandom";
 import { findByTextThenClick } from "./helpers";
 
 export async function primaryConditions(

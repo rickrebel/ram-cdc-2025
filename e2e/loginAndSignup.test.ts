@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { createRandom } from "./createRandom";
 import {
+  BASE,
   enterCorrectLogin,
   findAndClickListitemLink,
   findByTextThenClick,
@@ -16,7 +17,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -28,8 +29,8 @@ test.describe.serial("Login and Signup Testing", () => {
     await findByTextThenClick(page, "Iniciar sesión", "auth");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
   });
 
   test("User can sign up", async ({ browser }) => {
@@ -39,7 +40,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -61,8 +62,8 @@ test.describe.serial("Login and Signup Testing", () => {
     await findByTextThenClick(page, "Crear cuenta", "auth?mode=signup");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
   });
 
   test("Sign up failure ill formed password", async ({ browser }) => {
@@ -72,7 +73,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -88,6 +89,12 @@ test.describe.serial("Login and Signup Testing", () => {
       label: randomData.randomState,
     });
     await page.fill('input[name="email"]', randomData.randomEmail);
+
+    // Remove HTML5 minLength so the form reaches server validation.
+    await page.$eval(
+      'input[name="password"]',
+      (el) => el.removeAttribute("minLength")
+    );
     await page.fill('input[name="password"]', "abc");
 
     // Find and click the "Crear cuenta" button.
@@ -100,9 +107,9 @@ test.describe.serial("Login and Signup Testing", () => {
       "La contraseña debe tener al menos 7 caracteres."
     );
 
-    // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/auth?mode=signup");
-    await expect(page).toHaveURL("/auth?mode=signup");
+    // Expect to stay on the signup page.
+    await page.waitForURL(BASE + "/auth?mode=signup");
+    await expect(page).toHaveURL(BASE + "/auth?mode=signup");
   });
 
   test("Sign up failure using an existing email", async ({ browser }) => {
@@ -112,7 +119,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -141,8 +148,8 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/auth?mode=signup");
-    await expect(page).toHaveURL("/auth?mode=signup");
+    await page.waitForURL(BASE + "/auth?mode=signup");
+    await expect(page).toHaveURL(BASE + "/auth?mode=signup");
   });
 
   test("Sign up failure using an existing Cédula profesional", async ({
@@ -154,7 +161,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -183,8 +190,8 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/auth?mode=signup");
-    await expect(page).toHaveURL("/auth?mode=signup");
+    await page.waitForURL(BASE + "/auth?mode=signup");
+    await expect(page).toHaveURL(BASE + "/auth?mode=signup");
   });
 
   test("Sign up failure using a Cédula profesional that is too long", async ({
@@ -196,7 +203,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -221,12 +228,12 @@ test.describe.serial("Login and Signup Testing", () => {
     await expect(page.locator('li[role="alert"]')).toBeVisible();
     // Precise: expect to see the error text.
     await expect(page.locator('li[role="alert"]')).toHaveText(
-      "Por favor ingrese un válido Cédula profesional."
+      "Por favor ingrese una Cédula profesional válida."
     );
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/auth?mode=signup");
-    await expect(page).toHaveURL("/auth?mode=signup");
+    await page.waitForURL(BASE + "/auth?mode=signup");
+    await expect(page).toHaveURL(BASE + "/auth?mode=signup");
   });
 
   test("Sign up failure using a Cédula profesional that is too short", async ({
@@ -238,7 +245,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -263,12 +270,12 @@ test.describe.serial("Login and Signup Testing", () => {
     await expect(page.locator('li[role="alert"]')).toBeVisible();
     // Precise: expect to see the error text.
     await expect(page.locator('li[role="alert"]')).toHaveText(
-      "Por favor ingrese un válido Cédula profesional."
+      "Por favor ingrese una Cédula profesional válida."
     );
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/auth?mode=signup");
-    await expect(page).toHaveURL("/auth?mode=signup");
+    await page.waitForURL(BASE + "/auth?mode=signup");
+    await expect(page).toHaveURL(BASE + "/auth?mode=signup");
   });
 
   test("User can navigate around various login, signup, about, and privacy pages", async ({
@@ -278,7 +285,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -294,8 +301,8 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be at "auth?mode=login" page.
-    await page.waitForURL("/auth?mode=login");
-    await expect(page).toHaveURL("/auth?mode=login");
+    await page.waitForURL(BASE + "/auth?mode=login");
+    await expect(page).toHaveURL(BASE + "/auth?mode=login");
 
     // Navigate to forgot password page.
     await findByTextThenClick(
@@ -305,8 +312,8 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be at "auth?mode=login" page.
-    await page.waitForURL("/auth?mode=forgot-password");
-    await expect(page).toHaveURL("/auth?mode=forgot-password");
+    await page.waitForURL(BASE + "/auth?mode=forgot-password");
+    await expect(page).toHaveURL(BASE + "/auth?mode=forgot-password");
 
     // Navigate back to login page.
     await findByTextThenClick(
@@ -316,8 +323,8 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be at "auth?mode=login" page.
-    await page.waitForURL("/auth?mode=login");
-    await expect(page).toHaveURL("/auth?mode=login");
+    await page.waitForURL(BASE + "/auth?mode=login");
+    await expect(page).toHaveURL(BASE + "/auth?mode=login");
 
     // Navigate to about page via the Nav bar.
     await findAndClickListitemLink(
@@ -328,18 +335,18 @@ test.describe.serial("Login and Signup Testing", () => {
     );
 
     // Expect to be at "about" page.
-    await page.waitForURL("/about");
-    await expect(page).toHaveURL("/about");
+    await page.waitForURL(BASE + "/about");
+    await expect(page).toHaveURL(BASE + "/about");
 
     // Navigate to privacy page on the footer.
     await findByTextThenClick(page, "Política de Privacidad", "/about");
 
     // Expect to be at "privacy" page.
-    await page.waitForURL("/privacy");
-    await expect(page).toHaveURL("/privacy");
+    await page.waitForURL(BASE + "/privacy");
+    await expect(page).toHaveURL(BASE + "/privacy");
 
     const aboutFooterLink = page.locator(
-      'nav[aria-label="Footer"] a[href="/about"]'
+      `nav[aria-label="Footer"] a[href="${BASE}/about"]`
     );
     await expect(aboutFooterLink).toBeVisible();
     await aboutFooterLink.click();
@@ -350,7 +357,7 @@ test.describe.serial("Login and Signup Testing", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Open the theme dropdown by clicking the button
     await page.locator('div[role="button"]').click();
@@ -378,7 +385,7 @@ test.describe.serial("Finding CURPs", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -390,8 +397,8 @@ test.describe.serial("Finding CURPs", () => {
     await findByTextThenClick(page, "Iniciar sesión", "auth");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
 
     // Type in a CURP.
     // "delay" here represents the time to wait between key presses in milliseconds. Defaults to 0.
@@ -421,7 +428,7 @@ test.describe.serial("Finding CURPs", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -433,8 +440,8 @@ test.describe.serial("Finding CURPs", () => {
     await findByTextThenClick(page, "Iniciar sesión", "auth");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
 
     // Type in a CURP.
     // "delay" here represents the time to wait between key presses in milliseconds. Defaults to 0.
@@ -475,7 +482,7 @@ test.describe.serial("Finding CURPs", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -487,8 +494,8 @@ test.describe.serial("Finding CURPs", () => {
     await findByTextThenClick(page, "Iniciar sesión", "auth");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
 
     // Type in a CURP.
     // "delay" here represents the time to wait between key presses in milliseconds. Defaults to 0.
@@ -522,7 +529,7 @@ test.describe.serial("Finding CURPs", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");
@@ -534,8 +541,8 @@ test.describe.serial("Finding CURPs", () => {
     await findByTextThenClick(page, "Iniciar sesión", "auth");
 
     // Expect to be redirected to "add/characteristics" page.
-    await page.waitForURL("/add/characteristics");
-    await expect(page).toHaveURL("/add/characteristics");
+    await page.waitForURL(BASE + "/add/characteristics");
+    await expect(page).toHaveURL(BASE + "/add/characteristics");
 
     // Type in a CURP.
     // "delay" here represents the time to wait between key presses in milliseconds. Defaults to 0.

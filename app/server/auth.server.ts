@@ -3,7 +3,6 @@ const { hash, compare } = pkg;
 import { Prisma } from "@prisma/client";
 import { createCookieSessionStorage, redirect } from "@remix-run/node";
 import { prisma } from "~/server/database.server";
-import { appPath } from "~/server/basepath.server";
 import { Profile } from "@prisma/client";
 import { stat } from "fs";
 
@@ -73,7 +72,7 @@ export async function requireUserSession(request: Request): Promise<string> {
   const profileId: string | null = await getProfileFromSession(request);
 
   if (!profileId) {
-    throw redirect(appPath("/auth?mode=login"));
+    throw redirect("/auth?mode=login");
   }
 
   return profileId;
@@ -84,7 +83,7 @@ export async function destroyUserSession(request: Request) {
     request.headers.get("Cookie")
   );
 
-  return redirect(appPath("/"), {
+  return redirect("/auth?mode=login", {
     headers: {
       "Set-Cookie": await sessionStorage.destroySession(session),
     },
@@ -227,7 +226,7 @@ export async function signup(credentials: SignupCredentials) {
 
       return { newProfile };
     });
-    return createUserSession(result.newProfile.id, appPath("/add/characteristics"));
+    return createUserSession(result.newProfile.id, "/add/characteristics");
   } catch {
     throw new HttpError("Error al registrarse.", 500);
   }
@@ -284,7 +283,7 @@ export async function login(credentials: LoginCredentials) {
       });
     });
 
-    return createUserSession(existingProfile.id, appPath("/add/characteristics"));
+    return createUserSession(existingProfile.id, "/add/characteristics");
   } catch {
     throw new HttpError("Error al iniciar sesión.", 500);
   }

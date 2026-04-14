@@ -1,5 +1,19 @@
-import { expect, Page } from "@playwright/test";
+import { expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import { createRandom } from "./createRandom";
+
+/** Base path de la app (debe coincidir con BASE_PATH en .env) */
+export const BASE = "/rag";
+
+/** Prefija una URL string con BASE. No modifica RegExp ni null. */
+function withBase(
+  url: string | RegExp | null
+): string | RegExp | null {
+  if (url === null || url instanceof RegExp) return url;
+  return url.startsWith("/")
+    ? BASE + url
+    : BASE + "/" + url;
+}
 
 export async function findAndClickListitemLink(
   page: Page,
@@ -7,7 +21,7 @@ export async function findAndClickListitemLink(
   beforeURL: string,
   afterURL: string
 ) {
-  await page.waitForURL(beforeURL);
+  await page.waitForURL(withBase(beforeURL) as string);
 
   const link = page
     .getByRole("listitem")
@@ -20,7 +34,7 @@ export async function findAndClickListitemLink(
   // Click the login link
   await link.click();
 
-  await page.waitForURL(afterURL);
+  await page.waitForURL(withBase(afterURL) as string);
 }
 
 export async function findByTextThenClick(
@@ -29,12 +43,13 @@ export async function findByTextThenClick(
   beforeURL: string | RegExp,
   afterURL: string | RegExp | null = null
 ) {
+  const resolvedBefore = withBase(beforeURL)!;
   await Promise.all([
-    page.waitForURL(beforeURL, {
+    page.waitForURL(resolvedBefore, {
       timeout: 10000,
     }),
     page.waitForLoadState("domcontentloaded"),
-    expect(page).toHaveURL(beforeURL, { timeout: 10000 }),
+    expect(page).toHaveURL(resolvedBefore, { timeout: 10000 }),
   ]);
 
   // Find the item to be clicked.
@@ -46,11 +61,12 @@ export async function findByTextThenClick(
   await Promise.all([item.click(), page.waitForLoadState("domcontentloaded")]);
 
   if (afterURL) {
-    await page.waitForURL(afterURL, {
+    const resolvedAfter = withBase(afterURL)!;
+    await page.waitForURL(resolvedAfter, {
       timeout: 10000,
     });
     page.waitForLoadState("domcontentloaded");
-    await expect(page).toHaveURL(afterURL, { timeout: 10000 });
+    await expect(page).toHaveURL(resolvedAfter, { timeout: 10000 });
   }
 }
 
@@ -73,7 +89,7 @@ export async function enterCorrectLogin(
   beforeURL: string
 ) {
   const randomData = createRandom();
-  await page.waitForURL(beforeURL);
+  await page.waitForURL(withBase(beforeURL) as string);
   await page
     .locator('input[name="email"]')
     .pressSequentially(correctEmail, { delay: 100 });
@@ -83,5 +99,5 @@ export async function enterCorrectLogin(
   await page.selectOption('select[name="whichEstado"]', {
     label: randomData.randomState,
   });
-  await page.waitForURL(beforeURL);
+  await page.waitForURL(withBase(beforeURL) as string);
 }

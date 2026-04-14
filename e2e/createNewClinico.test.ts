@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { createRandom } from "./createRandom";
 import {
+  BASE,
   enterCorrectLogin,
   findAndClickListitemLink,
   findByTextThenClick,
@@ -20,7 +21,7 @@ test.describe.serial("Finding CURPs", () => {
     const context = await browser.newContext();
     // Open a new page within that context.
     const page = await context.newPage();
-    await page.goto("/");
+    await page.goto(BASE + "/");
 
     // Navigate to "Acceso" page.
     await findAndClickListitemLink(page, "Acceso", "/", "auth");

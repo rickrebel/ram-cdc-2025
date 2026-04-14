@@ -12,7 +12,6 @@ import {
 } from "@remix-run/node";
 import { ErrorBody } from "~/utilities/ErrorBody";
 import { requireUserSession } from "~/server/auth.server";
-import { appPath } from "~/server/basepath.server";
 import { updateSecondaryCondition } from "~/server/updates.server";
 import PrevioSiguiente from "~/components/inputgroups/PrevioSiguiente";
 import convertCheckboxValuesToArray from "~/utilities/ConvertCheckBoxToArray";
@@ -242,7 +241,7 @@ export async function action({ request }: ActionFunctionArgs) {
   // Add the new secondary conditions to the database.
   await updateSecondaryCondition(visitationId, arraySecondaryConditions);
 
-  return redirect(appPath(`/add/revise?vID=${visitationId}&cID=${clinicosId}`));
+  return redirect(`/add/revise?vID=${visitationId}&cID=${clinicosId}`);
 }
 
 // Runs on the server only.

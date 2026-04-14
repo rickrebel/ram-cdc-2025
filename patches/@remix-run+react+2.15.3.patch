@@ -1,0 +1,30 @@
+diff --git a/node_modules/@remix-run/react/dist/esm/single-fetch.js b/node_modules/@remix-run/react/dist/esm/single-fetch.js
+index 5d02d72..0a03dd9 100644
+--- a/node_modules/@remix-run/react/dist/esm/single-fetch.js
++++ b/node_modules/@remix-run/react/dist/esm/single-fetch.js
+@@ -298,8 +298,8 @@ function stripIndexParam(url) {
+ }
+ function singleFetchUrl(reqUrl) {
+   let url = typeof reqUrl === "string" ? new URL(reqUrl, window.location.origin) : reqUrl;
+-  if (url.pathname === "/") {
+-    url.pathname = "_root.data";
++  if (url.pathname.endsWith("/")) {
++    url.pathname = `${url.pathname}_root.data`;
+   } else {
+     url.pathname = `${url.pathname.replace(/\/$/, "")}.data`;
+   }
+diff --git a/node_modules/@remix-run/react/dist/single-fetch.js b/node_modules/@remix-run/react/dist/single-fetch.js
+index 54d19c0..197534a 100644
+--- a/node_modules/@remix-run/react/dist/single-fetch.js
++++ b/node_modules/@remix-run/react/dist/single-fetch.js
+@@ -322,8 +322,8 @@ function stripIndexParam(url) {
+ }
+ function singleFetchUrl(reqUrl) {
+   let url = typeof reqUrl === "string" ? new URL(reqUrl, window.location.origin) : reqUrl;
+-  if (url.pathname === "/") {
+-    url.pathname = "_root.data";
++  if (url.pathname.endsWith("/")) {
++    url.pathname = `${url.pathname}_root.data`;
+   } else {
+     url.pathname = `${url.pathname.replace(/\/$/, "")}.data`;
+   }

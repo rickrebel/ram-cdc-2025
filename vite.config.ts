@@ -1,13 +1,8 @@
 import { vitePlugin as remix } from "@remix-run/dev";
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 import { visualizer } from "rollup-plugin-visualizer";
 import reactVitest from "@vitejs/plugin-react";
-
-// Sub-path configurable vía variable de entorno (build-time).
-// Ej: BASE_PATH=rag → la app vive en /rag/
-// Sin definir o vacío → la app vive en /
-const basePath = process.env.BASE_PATH || "";
 
 declare module "@remix-run/node" {
   interface Future {
@@ -15,13 +10,21 @@ declare module "@remix-run/node" {
   }
 }
 
-export default defineConfig({
+// defineConfig recibe una función para poder llamar a loadEnv()
+// antes de que se construya la config. Vite carga .env DESPUÉS
+// de los hooks de plugins, así que sin esto BASE_PATH no estaría
+// disponible a tiempo.
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const basePath = env.BASE_PATH || "";
+
+  return {
   base: basePath ? `/${basePath}/` : "/",
   plugins: [
     process.env.VITEST
       ? reactVitest()
       : remix({
-          basename: basePath ? `/${basePath}` : undefined,
+          basename: basePath ? `/${basePath}/` : "/",
           future: {
             v3_fetcherPersist: true,
             v3_relativeSplatPath: true,
@@ -45,4 +48,5 @@ export default defineConfig({
     // Specify a desired port, but Vite will use a different available one if needed
     port: 5173,
   },
+};
 });
